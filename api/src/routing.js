@@ -221,6 +221,11 @@ var UNAUDITED_ENDPOINTS = [
   routePrefix + '_explain',
   // allow anyone to access their _session information
   '/_session',
+  // allow anyone to access the DB.info() endpoint
+  // REVIEWER: arguably some of this stuff shouldn't be exposed, but it's hard
+  // to know why except that it feels wrong. If we can get the max seq from
+  // another source we can use that instead,
+  routePrefix
 ];
 
 UNAUDITED_ENDPOINTS.forEach(function(url) {

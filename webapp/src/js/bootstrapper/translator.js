@@ -4,8 +4,8 @@ var eurodigit = require('eurodigit');
 
 var TRANSLATIONS = {
   en: {
-    FETCH_INFO: function(x) {
-      return 'Fetching info (' + x + ' docs)…';
+    FETCH_INFO: function(info) {
+      return `Fetching info (${info.total} docs) ${info.percent}% complete, ${info.minutes}min remaining`;
     },
     LOAD_APP: 'Loading app…',
     PURGE_INIT: 'Checking data…',

@@ -50,32 +50,77 @@
 
   var initialReplication = function(localDb, remoteDb) {
     setUiStatus('LOAD_APP');
-    var dbSyncStartTime = Date.now();
-    var dbSyncStartData = getDataUsage();
-    var replicator = localDb.replicate
-      .from(remoteDb, {
-        live: false,
-        retry: false,
-        heartbeat: 10000,
-        timeout: 1000 * 60 * 10, // try for ten minutes then give up
-      });
 
-    replicator
-      .on('change', function(info) {
-        console.log('initialReplication()', 'change', info);
-        setUiStatus('FETCH_INFO', info.docs_read || '?');
-      });
+    return remoteDb.info().then(info => {
+      const highestSeq = parseInt(info.update_seq.split('-')[0]);
+      const MAX_SAMPLES = 2; // cannot be less than two
+      const dates = [];
+      const seqs = [];
+      let change = 0;
 
-    return replicator
-      .then(function() {
-        var duration = Date.now() - dbSyncStartTime;
-        console.info('Initial sync completed successfully in ' + (duration / 1000) + ' seconds');
-        if (dbSyncStartData) {
-          var dbSyncEndData = getDataUsage();
-          var rx = dbSyncEndData.app.rx - dbSyncStartData.app.rx;
-          console.info('Initial sync received ' + rx + 'B of data');
-        }
-      });
+      var dbSyncStartTime = Date.now();
+      var dbSyncStartData = getDataUsage();
+      var replicator = localDb.replicate
+        .from(remoteDb, {
+          live: false,
+          retry: false,
+          heartbeat: 10000,
+          timeout: 1000 * 60 * 10, // try for ten minutes then give up
+        });
+
+      replicator
+        .on('change', function(info) {
+          const seq = parseInt(info.last_seq.split('-')[0]);
+
+          const idx = change++ % MAX_SAMPLES;
+
+          dates[idx] = Date.now();
+          seqs[idx] = seq;
+
+          const samples = dates.length;
+          const zero = (idx + 1) % samples;
+
+          let dateDiff = 0;
+          let seqDiff = 0;
+          for (let delta = 0; delta < samples - 1; delta++) {
+            const first = (zero + delta) % samples;
+            const second = (zero + delta + 1) % samples;
+
+            dateDiff += (dates[second] - dates[first]);
+            seqDiff += (seqs[second] - seqs[first]);
+          }
+          dateDiff /= (samples - 1);
+          seqDiff /= (samples - 1);
+
+          const seqChunksLeft = (highestSeq - seq) / seqDiff;
+          const timeLeft = dateDiff * seqChunksLeft;
+
+          let minutes = Math.floor(timeLeft / 1000 / 60);
+
+          if (minutes === 0) {
+            minutes = '<1';
+          }
+
+          const percentLeft = Math.floor((seq / highestSeq) * 100);
+
+          setUiStatus('FETCH_INFO', {
+            percent: percentLeft,
+            minutes: minutes || '?',
+            total: info.docs_read || '?'
+          });
+        });
+
+      return replicator
+        .then(function() {
+          var duration = Date.now() - dbSyncStartTime;
+          console.info('Initial sync completed successfully in ' + (duration / 1000) + ' seconds');
+          if (dbSyncStartData) {
+            var dbSyncEndData = getDataUsage();
+            var rx = dbSyncEndData.app.rx - dbSyncStartData.app.rx;
+            console.info('Initial sync received ' + rx + 'B of data');
+          }
+        });
+    });
   };
 
   var getDataUsage = function() {
