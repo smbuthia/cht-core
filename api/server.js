@@ -1,11 +1,75 @@
 const environment = require('./src/environment'),
   serverChecks = require('@medic/server-checks'),
+  db = require('./src/db-pouch'),
+  { promisify } = require('util'),
+  fs = require('fs'),
+  libxslt = require('libxslt'),
   logger = require('./src/logger');
 
 process.on('unhandledRejection', reason => {
   logger.error('Unhandled Rejection:');
   logger.error('%o',reason);
 });
+
+const parse = file => {
+  return new Promise((resolve, reject) => {
+    fs.readFile(file, (err, xsl) => {
+      if (err) {
+        return reject(err);
+      }
+      libxslt.parse(xsl.toString('utf8'), (err, stylesheet) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(stylesheet);
+      });
+    });
+  });
+};
+
+const apply = (stylesheet, xml) => {
+  return new Promise((resolve, reject) => {
+    stylesheet.apply(xml, function(err, result) {
+      if (err) {
+        return reject(err);
+      }
+      resolve(result);
+    });
+  });
+};
+
+// TODO shared lib??
+const attach = (doc, name, content, type) => {
+  if (!doc._attachments) {
+    doc._attachments = {};
+  }
+  doc._attachments[name] = {
+    data: Buffer.from(content, { type: type }),
+    content_type: type
+  };
+};
+
+const translateXsls = () => {
+  return Promise.all([
+    parse('node_modules/enketo-xslt/xsl/openrosa2html5form.xsl'),
+    parse('node_modules/enketo-xslt/xsl/openrosa2xmlmodel.xsl'),
+  ])
+    .then(([ formStylesheet, modelStylesheet ]) => {
+      return db.medic.get('form:delivery', { attachments: true, binary: true })
+        .then(doc => {
+          const xml = doc._attachments.xml.data.toString('utf8');
+          return Promise.all([
+            apply(formStylesheet, xml),
+            apply(modelStylesheet, xml)
+          ])
+          .then(([ form, model ]) => {
+            attach(doc, 'form', form, 'text/html');
+            attach(doc, 'model', model, 'application/xml');
+            return db.medic.put(doc);
+          });
+        });
+    })
+};
 
 serverChecks.check(environment.serverUrl).then(() => {
   const app = require('./src/routing'),
@@ -33,6 +97,8 @@ serverChecks.check(environment.serverUrl).then(() => {
     .then(() => logger.info('Running db migrations…'))
     .then(migrations.run)
     .then(() => logger.info('Database migrations completed successfully'))
+
+    .then(translateXsls)
 
     .catch(err => {
       logger.error('Fatal error initialising medic-api');
