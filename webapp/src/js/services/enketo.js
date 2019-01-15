@@ -107,7 +107,7 @@ angular.module('inboxServices').service('Enketo',
       // manually translate the title as enketo-core doesn't have any way to do this
       // https://github.com/enketo/enketo-core/issues/405
       if (title) {
-        $xml.find('h\\:title,title').text(TranslateFrom(title));
+        $xml.find('h\\:title,title').text(TranslateFrom(title)); // TODO
       }
       return xml;
     };
@@ -123,26 +123,36 @@ angular.module('inboxServices').service('Enketo',
       });
     };
 
-    var withForm = function(id, language) {
-      if (!xmlCache[id]) {
-        xmlCache[id] = {};
-      }
-      if (!xmlCache[id][language]) {
-        xmlCache[id][language] = DB()
-          .get(id)
-          .then(function(form) {
-            return getFormXml(form, language);
-          })
-          .then(transformXml);
-      }
-      return xmlCache[id][language].then(function(form) {
-        // clone form to avoid leaking of data between instances of a form
+    var withForm = function(id) {
+      return DB().get(id, { attachments: true }).then(doc => {
+        const [form, model] = ['form', 'model'].map(key => atob(doc._attachments[key].data));
         return {
-          html: form.html.clone(),
-          model: form.model,
-          hasContactSummary: form.hasContactSummary
+          html: $(form).clone(), // TODO cache ?
+          model: model,
+          hasContactSummary: $(model).find('> instance[id="contact-summary"]').length > 0,
+          title: doc.title
         };
       });
+
+      // if (!xmlCache[id]) {
+      //   xmlCache[id] = {};
+      // }
+      // if (!xmlCache[id][language]) {
+      //   xmlCache[id][language] = DB()
+      //     .get(id)
+      //     .then(function(form) {
+      //       return getFormXml(form, language);
+      //     })
+      //     .then(transformXml);
+      // }
+      // return xmlCache[id][language].then(function(form) {
+      //   // clone form to avoid leaking of data between instances of a form
+      //   return {
+      //     html: form.html.clone(),
+      //     model: form.model,
+      //     hasContactSummary: form.hasContactSummary
+      //   };
+      // });
     };
 
     var handleKeypressOnInputField = function(e) {
@@ -259,6 +269,15 @@ angular.module('inboxServices').service('Enketo',
         });
     };
 
+    const translateForm = (doc, wrapper, form) => {
+      return Language().then(language => {
+        form.langs.setAll(language);
+        if (doc.title) {
+          wrapper.find('#form-title').text(TranslateFrom(doc.title));
+        }
+      });
+    };
+
     var renderFromXmls = function(doc, selector, instanceData) {
       var wrapper = $(selector);
       wrapper.find('.form-footer')
@@ -269,23 +288,25 @@ angular.module('inboxServices').service('Enketo',
       var formContainer = wrapper.find('.container').first();
       formContainer.html(doc.html);
 
-      return getEnketoOptions(doc, instanceData).then(function(options) {
+      return getEnketoOptions(doc, instanceData).then(options => {
         currentForm = new EnketoForm(wrapper.find('form').first(), options);
         var loadErrors = currentForm.init();
         if (loadErrors && loadErrors.length) {
           return $q.reject(new Error(JSON.stringify(loadErrors)));
         }
-        wrapper.show();
+        return translateForm(doc, wrapper, currentForm).then(() => {
+          wrapper.show();
 
-        wrapper.find('input').on('keydown', handleKeypressOnInputField);
+          wrapper.find('input').on('keydown', handleKeypressOnInputField);
 
-        // handle page turning using browser history
-        $window.history.replaceState({ enketo_page_number: 0 }, '');
-        overrideNavigationButtons(currentForm, wrapper);
-        addPopStateHandler(currentForm, wrapper);
-        forceRecalculate(currentForm);
+          // handle page turning using browser history
+          $window.history.replaceState({ enketo_page_number: 0 }, '');
+          overrideNavigationButtons(currentForm, wrapper);
+          addPopStateHandler(currentForm, wrapper);
+          forceRecalculate(currentForm);
 
-        return currentForm;
+          return currentForm;
+        });
       });
     };
 
@@ -334,10 +355,7 @@ angular.module('inboxServices').service('Enketo',
     };
 
     var renderForm = function(selector, id, instanceData, editedListener) {
-      return Language()
-        .then(function(language) {
-          return withForm(id, language);
-        })
+      return withForm(id)
         .then(function(doc) {
           replaceJavarosaMediaWithLoaders(id, doc.html);
           return renderFromXmls(doc, selector, instanceData);
@@ -359,7 +377,7 @@ angular.module('inboxServices').service('Enketo',
     this.renderFromXmlString = function(selector, xmlString, instanceData, editedListener) {
       return $q.all([inited, Language()])
         .then(function(results) {
-          return translateXml(xmlString, results[1]);
+          return translateXml(xmlString, results[1]); // TODO
         })
         .then(transformXml)
         .then(function(doc) {

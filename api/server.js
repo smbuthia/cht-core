@@ -27,6 +27,11 @@ const parse = file => {
   });
 };
 
+const removeRoot = xml => {
+  // maybe remove whitespace??
+  return xml.replace(/<root[^>]*>([\s\S]*)<\/root>/, '$1');
+};
+
 const apply = (stylesheet, xml) => {
   return new Promise((resolve, reject) => {
     stylesheet.apply(xml, function(err, result) {
@@ -59,8 +64,8 @@ const translateXsls = () => {
         .then(doc => {
           const xml = doc._attachments.xml.data.toString('utf8');
           return Promise.all([
-            apply(formStylesheet, xml),
-            apply(modelStylesheet, xml)
+            apply(formStylesheet, xml).then(removeRoot),
+            apply(modelStylesheet, xml).then(removeRoot)
           ])
           .then(([ form, model ]) => {
             attach(doc, 'form', form, 'text/html');
