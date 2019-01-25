@@ -58,6 +58,7 @@
     const counts = [];
     let change = 0;
 
+    // TODO: pull info() from local in case of restarted initial replications
     PouchDB.fetch(`/api/v1/users/${userCtx.name}/info`, {credentials: 'same-origin'})
       .then(res => res.json())
       .then(data => {
@@ -80,6 +81,12 @@
     replicator
       .on('change', function(info) {
         try {
+          // TODO: pull out this entire concept / calcuation into something that
+          // you can initialise and fire events at, which generates named progress bars
+          // on the UI
+          // Then we can have one for replication, and if you need it one for
+          // purging, and those bootstrapping events just initilise a progressor
+          // and it deals with rendering / calc / time remaining etc
           const docsRead = info.docs_read;
 
           const idx = change++ % MAX_SAMPLES;
