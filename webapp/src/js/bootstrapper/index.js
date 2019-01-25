@@ -48,79 +48,95 @@
     return dbInfo.name + '-user-' + username;
   };
 
-  var initialReplication = function(localDb, remoteDb) {
+  var initialReplication = function(userCtx, localDb, remoteDb) {
     setUiStatus('LOAD_APP');
 
-    return remoteDb.info().then(info => {
-      const highestSeq = parseInt(info.update_seq.split('-')[0]);
-      const MAX_SAMPLES = 2; // cannot be less than two
-      const dates = [];
-      const seqs = [];
-      let change = 0;
+    let maximumDocuments;
+    const MAX_SAMPLES = 5; // cannot be less than two
+    const FUDGE_FACTOR = 1.2; // 20% higher time estimates
+    const dates = [];
+    const counts = [];
+    let change = 0;
 
-      var dbSyncStartTime = Date.now();
-      var dbSyncStartData = getDataUsage();
-      var replicator = localDb.replicate
-        .from(remoteDb, {
-          live: false,
-          retry: false,
-          heartbeat: 10000,
-          timeout: 1000 * 60 * 10, // try for ten minutes then give up
-        });
+    PouchDB.fetch(`/api/v1/users/${userCtx.name}/info`, {credentials: 'same-origin'})
+      .then(res => res.json())
+      .then(data => {
+        maximumDocuments = data.records;
+      })
+      .catch(err => {
+        console.warn('unable to determine maximum documents', err);
+      });
 
-      replicator
-        .on('change', function(info) {
-          const seq = parseInt(info.last_seq.split('-')[0]);
+    var dbSyncStartTime = Date.now();
+    var dbSyncStartData = getDataUsage();
+    var replicator = localDb.replicate
+      .from(remoteDb, {
+        live: false,
+        retry: false,
+        heartbeat: 10000,
+        timeout: 1000 * 60 * 10, // try for ten minutes then give up
+      });
+
+    replicator
+      .on('change', function(info) {
+        try {
+          const docsRead = info.docs_read;
 
           const idx = change++ % MAX_SAMPLES;
-
           dates[idx] = Date.now();
-          seqs[idx] = seq;
+          counts[idx] = docsRead
 
-          const samples = dates.length;
-          const zero = (idx + 1) % samples;
+          let percentLeft;
+          let minutes;
+          if (maximumDocuments) {
+            const samples = dates.length;
+            const zero = (idx + 1) % samples;
 
-          let dateDiff = 0;
-          let seqDiff = 0;
-          for (let delta = 0; delta < samples - 1; delta++) {
-            const first = (zero + delta) % samples;
-            const second = (zero + delta + 1) % samples;
+            let dateDiff = 0;
+            let countsDiff = 0;
+            for (let delta = 0; delta < samples - 1; delta++) {
+              const first = (zero + delta) % samples;
+              const second = (zero + delta + 1) % samples;
 
-            dateDiff += (dates[second] - dates[first]);
-            seqDiff += (seqs[second] - seqs[first]);
+              dateDiff += (dates[second] - dates[first]);
+              countsDiff += (counts[second] - counts[first]);
+            }
+            dateDiff /= (samples - 1);
+            countsDiff /= (samples - 1);
+
+            const docChunksLeft = (maximumDocuments - docsRead) / countsDiff;
+            const timeLeft = dateDiff * docChunksLeft;
+
+            minutes = Math.floor((timeLeft * FUDGE_FACTOR) / 1000 / 60);
+
+            if (minutes === 0) {
+              minutes = '<1';
+            }
+
+            percentLeft = Math.floor((docsRead / maximumDocuments) * 100);
           }
-          dateDiff /= (samples - 1);
-          seqDiff /= (samples - 1);
 
-          const seqChunksLeft = (highestSeq - seq) / seqDiff;
-          const timeLeft = dateDiff * seqChunksLeft;
-
-          let minutes = Math.floor(timeLeft / 1000 / 60);
-
-          if (minutes === 0) {
-            minutes = '<1';
-          }
-
-          const percentLeft = Math.floor((seq / highestSeq) * 100);
 
           setUiStatus('FETCH_INFO', {
-            percent: percentLeft,
+            percent: percentLeft || '?',
             minutes: minutes || '?',
-            total: info.docs_read || '?'
+            total: docsRead || '?'
           });
-        });
+        } catch (err) {
+          console.error('unable to generate update info from change', err);
+        }
+      });
 
-      return replicator
-        .then(function() {
-          var duration = Date.now() - dbSyncStartTime;
-          console.info('Initial sync completed successfully in ' + (duration / 1000) + ' seconds');
-          if (dbSyncStartData) {
-            var dbSyncEndData = getDataUsage();
-            var rx = dbSyncEndData.app.rx - dbSyncStartData.app.rx;
-            console.info('Initial sync received ' + rx + 'B of data');
-          }
-        });
-    });
+    return replicator
+      .then(function() {
+        var duration = Date.now() - dbSyncStartTime;
+        console.info('Initial sync completed successfully in ' + (duration / 1000) + ' seconds');
+        if (dbSyncStartData) {
+          var dbSyncEndData = getDataUsage();
+          var rx = dbSyncEndData.app.rx - dbSyncStartData.app.rx;
+          console.info('Initial sync received ' + rx + 'B of data');
+        }
+      });
   };
 
   var getDataUsage = function() {
@@ -200,10 +216,10 @@
       .catch(function() {
         // no ddoc found - do replication
         initialReplicationNeeded = true;
-        return initialReplication(localDb, remoteDb)
+        return initialReplication(userCtx, localDb, remoteDb)
           .then(function() {
-            return getDdoc(localDb).catch(function() {
-              throw new Error('Initial replication failed');
+            return getDdoc(localDb).catch(function(err) {
+              throw new Error('Initial replication failed', err);
             });
           });
       })
