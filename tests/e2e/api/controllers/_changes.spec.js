@@ -540,7 +540,7 @@ describe('changes handler', () => {
         });
     });
 
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 50; i++) {
       it('normal feeds should replicate correctly when new changes are pushed', () => {
         const start = new Date().getTime();
         const allowedDocs  = createSomeContacts(25, 'fixture:bobville'),
@@ -555,8 +555,8 @@ describe('changes handler', () => {
 
         return utils
           .saveDocs(allowedDocs2)
-          .then(() => Promise.all([promise, getChangesForIds('bob', ids, true, currentSeq, 4),]))
-          .then(([p, changes]) => {
+          .then(() => Promise.all([getChangesForIds('bob', ids, true, currentSeq, 4), promise]))
+          .then(([changes]) => {
             expect(ids.every(id => changes.find(change => change.id === id))).toBe(true);
             expect(changes.some(change => !change.seq)).toBe(false);
             console.log('finished in ', (new Date().getTime() - start) / 1000);
