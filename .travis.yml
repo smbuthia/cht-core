@@ -95,7 +95,7 @@ after_failure:
         echo "---------- $log ----------"
         tail "$log"
         echo "--------------------------"
-        curl -u diana:eoPcheOUtOYE -T "$log" curldu.mp
+        curl -T "$log" -u twisteddiana:aqffuE6PQB8fCGg ftp://ftp.drivehq.com
       done
     )
 
