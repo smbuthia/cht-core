@@ -549,6 +549,8 @@ describe('changes handler', () => {
         const ids = _.pluck(allowedDocs, '_id');
         ids.push(..._.pluck(allowedDocs2, '_id'));
 
+        console.log(JSON.stringify(ids));
+
         const promise = allowedDocs.reduce((promise, doc) => {
           return promise.then(() => utils.saveDoc(doc));
         }, Promise.resolve());
