@@ -258,10 +258,12 @@ describe('changes handler', () => {
           method: 'DELETE'
         })
       )))
-      .then(done));
+      .then(done)
+      .catch(done));
 
   afterEach(done => utils.revertDb(DOCS_TO_KEEP).then(done));
 
+  /*
   describe('requests', () => {
     beforeAll(()=> Promise.all(users.map(user =>
       utils.request({
@@ -454,7 +456,7 @@ describe('changes handler', () => {
         });
     });
   });
-
+  */
   describe('Filtered replication', () => {
     const bobsIds = [...DEFAULT_EXPECTED],
           stevesIds = [...DEFAULT_EXPECTED],
@@ -539,6 +541,7 @@ describe('changes handler', () => {
     });
 
     it('normal feeds should replicate correctly when new changes are pushed', () => {
+      const start = new Date().getTime();
       const allowedDocs = createSomeContacts(25, 'fixture:bobville'),
             allowedDocs2 = createSomeContacts(25, 'fixture:bobville');
 
@@ -558,9 +561,11 @@ describe('changes handler', () => {
         .then(([ p, changes ]) => {
           expect(ids.every(id => changes.find(change => change.id === id))).toBe(true);
           expect(changes.some(change => !change.seq)).toBe(false);
+          console.log('finished in ', (new Date().getTime() - start) / 1000);
         });
     });
 
+    /*
     it('filters allowed changes in longpolls', () => {
       const allowedDocs = createSomeContacts(3, 'fixture:bobville');
       const deniedDocs = createSomeContacts(3, 'irrelevant-place');
@@ -1027,8 +1032,10 @@ describe('changes handler', () => {
           expect(changes[0].changes[0].rev).toEqual(contact._rev);
         });
     });
+    */
   });
 
+  /*
   it('should filter the changes to relevant ones', () =>
     utils.saveDoc({ type:'clinic', parent:{ _id:'nowhere' } })
       .then(() => utils.saveDoc({ type:'clinic', _id:'very-relevant', parent:{ _id:'fixture:bobville' } }))
@@ -1148,4 +1155,5 @@ describe('changes handler', () => {
       .then(() => requestChanges('chw', { since: seq_number }))
       .then(changes => assertChangeIds(changes, 'visible'));
   });
+  */
 });

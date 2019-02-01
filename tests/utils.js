@@ -197,7 +197,7 @@ const deleteAll = (except = []) => {
     )
     .then(toDelete => {
       const ids = toDelete.map(doc => doc._id);
-      console.log(`Deleting docs: ${ids}`);
+      //console.log(`Deleting docs: ${ids}`);
       return module.exports
         .request({
           path: path.join('/', constants.DB_NAME, '_bulk_docs'),
@@ -206,7 +206,7 @@ const deleteAll = (except = []) => {
           headers: { 'content-type': 'application/json' },
         })
         .then(response => {
-          console.log(`Deleted docs: ${JSON.stringify(response)}`);
+          //console.log(`Deleted docs: ${JSON.stringify(response)}`);
         });
     });
 };

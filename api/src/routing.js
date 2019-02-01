@@ -98,15 +98,24 @@ app.use((req, res, next) => {
   next();
 });
 
+const basicAuth = require('basic-auth');
+const morganSkip = req => {
+  const credentials = basicAuth(req);
+  return !credentials || credentials.name !== 'bob';
+};
+
 morgan.token('id', req => req.id);
 app.use(
-  morgan('REQ :id :remote-addr :remote-user :method :url HTTP/:http-version', {
+  morgan(':date[iso] REQ :id :remote-addr :remote-user :method :url HTTP/:http-version', {
     immediate: true,
+    skip: morganSkip
   })
 );
 app.use(
   morgan(
-    'RES :id :remote-addr :remote-user :method :url HTTP/:http-version :status :res[content-length] :response-time ms'
+    ':date[iso] RES :id :remote-addr :remote-user :method :url HTTP/:http-version :status :res[content-length] :response-time ms', {
+      skip: morganSkip
+    }
   )
 );
 

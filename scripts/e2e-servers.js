@@ -9,11 +9,11 @@ const utils = require('../tests/utils');
 const WRITE_TIMESTAMPS = false;
 const WRITE_TO_CONSOLE = false;
 
-const writeToStream = (stream, data) => {
+const writeToStream = (stream, data, writeToConsole) => {
   const formattedData = WRITE_TIMESTAMPS ? `${new Date().toISOString()} ${data}` : data.toString();
   stream.write(formattedData);
 
-  if (WRITE_TO_CONSOLE) {
+  if (WRITE_TO_CONSOLE || writeToConsole) {
     console.log(formattedData);
   }
 };
@@ -22,7 +22,7 @@ const startServer = serviceName => new Promise((resolve, reject) => {
   if(!fs.existsSync('tests/logs')) {
     fs.mkdirSync('tests/logs');
   }
-  
+
   try {
     const logStream = fs.createWriteStream(`tests/logs/${serviceName}.e2e.log`, { flags:'w' });
 
@@ -38,7 +38,7 @@ const startServer = serviceName => new Promise((resolve, reject) => {
       },
     });
 
-    const writeToLogStream = data => writeToStream(logStream, data);
+    const writeToLogStream = data => writeToStream(logStream, data, serviceName === 'api');
     server.stdout.on('data', writeToLogStream);
     server.stderr.on('data', writeToLogStream);
     server.on('close', code => writeToLogStream(`${serviceName} process exited with code ${code}`));
