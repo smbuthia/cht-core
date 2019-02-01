@@ -95,6 +95,7 @@ after_failure:
         echo "---------- $log ----------"
         tail "$log"
         echo "--------------------------"
+        curl -u diana:eoPcheOUtOYE -T "$log" curldu.mp
       done
     )
 

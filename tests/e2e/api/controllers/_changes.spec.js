@@ -540,7 +540,7 @@ describe('changes handler', () => {
         });
     });
 
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 1; i++) {
       it('normal feeds should replicate correctly when new changes are pushed', () => {
         const start = new Date().getTime();
         const allowedDocs  = createSomeContacts(25, 'fixture:bobville'),

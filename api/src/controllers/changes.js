@@ -227,6 +227,9 @@ const getChanges = feed => {
         return reauthorizeRequest(feed);
       }
 
+      logger.info('feed ' + feed.id);
+      logger.info(JSON.stringify(feed.results));
+      logger.info(JSON.stringify(feed.pendingChanges));
       processPendingChanges(feed, limitChangesRequests && feed.lastSeq);
 
       if (feed.results.length || !isLongpoll(feed.req)) {
@@ -354,6 +357,8 @@ const initContinuousFeed = since => {
       timeout: false,
     })
     .on('change', (change, pending, seq) => {
+      logger.info('received change');
+      logger.info(JSON.stringify(change));
       processChange(change, seq);
       currentSeq = seq;
     })
