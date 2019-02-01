@@ -1083,7 +1083,7 @@ module.exports = function(grunt) {
     'build',
     'build-admin',
     'static-analysis',
-    'install-dependencies',
+    //'install-dependencies',
     //'karma:unit',
     //'karma:admin',
     //'exec:shared-lib-unit',

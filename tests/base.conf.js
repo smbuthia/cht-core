@@ -11,7 +11,7 @@ class BaseConfig {
     this.config = {
       seleniumAddress: 'http://localhost:4444/wd/hub',
 
-      specs: [`${testSrcDir}/**/_changes.spec.js`],
+      specs: [`${testSrcDir}/**/_changes.spec.js`, `${testSrcDir}/**/sms-gateway.perf.js`],
 
       framework: 'jasmine2',
       capabilities: {

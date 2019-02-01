@@ -540,30 +540,29 @@ describe('changes handler', () => {
         });
     });
 
-    it('normal feeds should replicate correctly when new changes are pushed', () => {
-      const start = new Date().getTime();
-      const allowedDocs = createSomeContacts(25, 'fixture:bobville'),
-            allowedDocs2 = createSomeContacts(25, 'fixture:bobville');
+    for (let i = 0; i < 30; i++) {
+      it('normal feeds should replicate correctly when new changes are pushed', () => {
+        const start = new Date().getTime();
+        const allowedDocs  = createSomeContacts(25, 'fixture:bobville'),
+              allowedDocs2 = createSomeContacts(25, 'fixture:bobville');
 
-      const ids = _.pluck(allowedDocs, '_id');
-      ids.push(..._.pluck(allowedDocs2, '_id'));
+        const ids = _.pluck(allowedDocs, '_id');
+        ids.push(..._.pluck(allowedDocs2, '_id'));
 
-      const promise = allowedDocs.reduce((promise, doc) => {
-        return promise.then(() => utils.saveDoc(doc));
-      }, Promise.resolve());
+        const promise = allowedDocs.reduce((promise, doc) => {
+          return promise.then(() => utils.saveDoc(doc));
+        }, Promise.resolve());
 
-      return utils
-        .saveDocs(allowedDocs2)
-        .then(() => Promise.all([
-          promise,
-          getChangesForIds('bob', ids, true, currentSeq, 4),
-        ]))
-        .then(([ p, changes ]) => {
-          expect(ids.every(id => changes.find(change => change.id === id))).toBe(true);
-          expect(changes.some(change => !change.seq)).toBe(false);
-          console.log('finished in ', (new Date().getTime() - start) / 1000);
-        });
-    });
+        return utils
+          .saveDocs(allowedDocs2)
+          .then(() => Promise.all([promise, getChangesForIds('bob', ids, true, currentSeq, 4),]))
+          .then(([p, changes]) => {
+            expect(ids.every(id => changes.find(change => change.id === id))).toBe(true);
+            expect(changes.some(change => !change.seq)).toBe(false);
+            console.log('finished in ', (new Date().getTime() - start) / 1000);
+          });
+      });
+    }
 
     /*
     it('filters allowed changes in longpolls', () => {
