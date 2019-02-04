@@ -16,7 +16,6 @@ const DEFAULT_EXPECTED = [
   '_design/medic-client'
 ];
 
-
 function assertChangeIds(changes) {
   changes = changes.results;
 
