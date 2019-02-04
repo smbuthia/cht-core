@@ -228,6 +228,7 @@ const getChanges = feed => {
       }
 
       logger.info('feed ' + feed.id);
+      logger.info(JSON.stringify(feed.allowedDocIds));
       logger.info(JSON.stringify(feed.results));
       logger.info(JSON.stringify(feed.pendingChanges));
       processPendingChanges(feed, limitChangesRequests && feed.lastSeq);
