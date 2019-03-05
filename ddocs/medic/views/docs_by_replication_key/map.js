@@ -61,6 +61,7 @@ function (doc) {
         emit(doc.contact._id, value);
       }
       return;
+    case 'contact':
     case 'clinic':
     case 'district_hospital':
     case 'health_center':

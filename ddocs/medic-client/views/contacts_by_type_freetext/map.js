@@ -31,8 +31,9 @@ function(doc) {
   };
 
   var types = [ 'district_hospital', 'health_center', 'clinic', 'person' ];
+  var type = doc.type === 'contact' ? doc.contact_type : doc.type;
   var dead = !!doc.date_of_death;
-  var idx = types.indexOf(doc.type);
+  var idx = types.indexOf(type);
   if (idx !== -1) {
     var order = dead + ' ' + idx + ' ' + (doc.name && doc.name.toLowerCase());
     Object.keys(doc).forEach(function(key) {

@@ -31,14 +31,15 @@ function(doc) {
   };
 
   var types = [ 'district_hospital', 'health_center', 'clinic', 'person' ];
-  var idx = types.indexOf(doc.type);
+  var type = doc.type === 'contact' ? doc.contact_type : doc.type;
+  var idx = types.indexOf(type);
   var dead = !!doc.date_of_death;
   if (idx !== -1) {
     var order = dead + ' ' + idx + ' ' + (doc.name && doc.name.toLowerCase());
     Object.keys(doc).forEach(function(key) {
       emitField(key, doc[key], order);
     });
-    var clinic = doc.type === 'person' ? doc.parent : doc;
+    var clinic = type === 'person' ? doc.parent : doc;
     if (clinic && clinic._id) {
       emitMaybe('clinic:' + clinic._id, order);
     }

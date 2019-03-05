@@ -127,6 +127,8 @@ var _ = require('underscore'),
         });
       }
 
+      console.log('SEARCHING', actualFilter, options, extensions, docIds);
+
       return Search('contacts', actualFilter, options, extensions, docIds)
         .then(function(contacts) {
           // If you have a home place make sure its at the top
