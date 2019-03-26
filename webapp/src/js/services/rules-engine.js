@@ -188,7 +188,7 @@ var nools = require('nools'),
           callback: updateFacts,
           filter: function(change) {
             return change.doc.form ||
-                   ContactSchema.getTypes().indexOf(change.doc.type) !== -1;
+                   ContactSchema.getTypes().indexOf(change.doc.type) !== -1; // TODO more types
           }
         });
       };
