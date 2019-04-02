@@ -89,7 +89,12 @@ angular.module('inboxControllers').controller('ContactsContentCtrl',
       return Auth('can_view_tasks')
         .then(function() {
           ctrl.updateSelected({ tasks: [] });
-          var children = ctrl.selected.children.persons || [];
+          const children = [];
+          ctrl.selected.children.forEach(childModel => {
+            if (childModel.type.person) {
+              children.push(...childModel.contacts);
+            }
+          });
           TasksForContact(
             ctrl.selected.doc._id,
             ctrl.selected.doc.type,
@@ -128,7 +133,7 @@ angular.module('inboxControllers').controller('ContactsContentCtrl',
       return ContactViewModelGenerator.getContact(id, options)
         .then(function(model) {
           var refreshing = (ctrl.selected && ctrl.selected.doc._id) === id;
-          $scope.setSelected(model, options);
+          $scope.setSelected(model);
           $scope.settingSelected(refreshing);
           return getTasks();
         })

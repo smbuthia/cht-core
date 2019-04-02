@@ -194,6 +194,7 @@ var _ = require('underscore'),
     };
 
     var getActionBarDataForChild = function(docType) {
+      // TODO this should return an array of types...
       var selectedChildPlaceType = ContactSchema.getChildPlaceType(docType);
       if (!selectedChildPlaceType) {
         return $q.resolve();
@@ -208,13 +209,12 @@ var _ = require('underscore'),
 
     // only admins can edit their own place
     var getCanEdit = function(selectedDoc) {
+      if (Session.isAdmin()) {
+        return true;
+      }
       return setupPromise
-        .then(function() {
-          return Session.isAdmin() || usersHomePlace._id !== selectedDoc._id;
-        })
-        .catch(function() {
-          return false;
-        });
+        .then(() => usersHomePlace._id !== selectedDoc._id)
+        .catch(() => false);
     };
 
     var translateTitle = function(key, label) {
@@ -229,24 +229,26 @@ var _ = require('underscore'),
                      settings.muting.unmute_forms.includes(formId));
     };
 
+    const getTitle = selected => {
+      const title = (selected.type && selected.type.name_key) ||
+                    'contact.profile';
+      return $translate(title).catch(() => title);
+    };
+
     $scope.setSelected = function(selected, options) {
       liveList.setSelected(selected.doc._id);
       ctrl.setLoadingSelectedChildren(true);
       ctrl.setLoadingSelectedReports(true);
       ctrl.setSelected(selected);
       ctrl.clearCancelCallback();
-      var title = '';
-      if (ctrl.selected.doc.type === 'person') {
-        title = 'contact.profile';
-      } else {
-        title = ContactSchema.get(ctrl.selected.doc.type).label;
-      }
+
+      const selectedDoc = ctrl.selected.doc;
       $scope.loadingSummary = true;
       return $q
         .all([
-          $translate(title),
-          getActionBarDataForChild(ctrl.selected.doc.type),
-          getCanEdit(ctrl.selected.doc),
+          getTitle(selected),
+          getActionBarDataForChild(selectedDoc.type),
+          getCanEdit(selectedDoc),
         ])
         .then(function(results) {
           $scope.setTitle(results[0]);
@@ -257,8 +259,8 @@ var _ = require('underscore'),
 
           $scope.setRightActionBar({
             relevantForms: [], // this disables the "New Action" button in action bar until full load is complete
-            selected: [ctrl.selected.doc],
-            sendTo: ctrl.selected.doc.type === 'person' ? ctrl.selected.doc : '',
+            selected: [selectedDoc],
+            sendTo: selected.type && selected.type.person ? selectedDoc : '',
             canDelete: false, // this disables the "Delete" button in action bar until full load is complete
             canEdit: canEdit,
           });
@@ -301,9 +303,9 @@ var _ = require('underscore'),
                       (!ctrl.selected.children.persons ||
                         ctrl.selected.children.persons.length === 0));
                   $scope.setRightActionBar({
-                    selected: [ctrl.selected.doc],
+                    selected: [selectedDoc],
                     relevantForms: formSummaries,
-                    sendTo: ctrl.selected.doc.type === 'person' ? ctrl.selected.doc : '',
+                    sendTo: selected.type && selected.type.person ? selectedDoc : '',
                     canEdit: canEdit,
                     canDelete: canDelete,
                   });
