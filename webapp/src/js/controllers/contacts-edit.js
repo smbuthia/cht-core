@@ -84,7 +84,7 @@ angular.module('inboxControllers').controller('ContactsEditCtrl',
           $scope.contact = contact;
           $scope.contactId = contact._id;
           titleKey = type.edit_key;
-          formId = type.edit_form;
+          formId = type.edit_form || type.create_form;
         } else { // adding
           $scope.contact = {
             type: 'contact',

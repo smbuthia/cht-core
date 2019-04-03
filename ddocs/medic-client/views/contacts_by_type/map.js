@@ -1,10 +1,14 @@
 function(doc) {
-  var types = [ 'district_hospital', 'health_center', 'clinic', 'person' ];
-  var type = doc.type === 'contact' ? doc.contact_type : doc.type;
-  var idx = types.indexOf(type); // TODO sorting index is going to be difficult...
-  var dead = !!doc.date_of_death;
+  var idx = -1;
+  var types = [ 'district_hospital', 'health_center', 'clinic', 'person', 'contact' ];
+  if (doc.type === 'contact') {
+    idx = doc.contact_type;
+  } else {
+    idx = types.indexOf(doc.type);
+  }
   if (idx !== -1) {
+    var dead = !!doc.date_of_death;
     var order = dead + ' ' + idx + ' ' + (doc.name && doc.name.toLowerCase());
-    emit([ type ], order);
+    emit([ doc.contact_type || doc.type ], order);
   }
 }

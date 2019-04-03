@@ -24,7 +24,7 @@ var _ = require('underscore'),
     Auth,
     Changes,
     CheckDate,
-    ContactSchema,
+    ContactTypes,
     CountMessages,
     DBSync,
     DatabaseConnectionMonitor,
@@ -381,11 +381,9 @@ var _ = require('underscore'),
     Changes({
       key: 'inbox-facilities',
       filter: function(change) {
-        var hierarchyTypes = ContactSchema.getPlaceTypes().filter(function(pt) {
-          return pt !== 'clinic';
-        });
-        // check if new document is a contact
-        return hierarchyTypes.indexOf(change.doc.type) !== -1;
+        return change.doc.type !== 'clinic' &&
+               change.doc.type !== 'person' &&
+               ContactTypes.includes(change.doc);
       },
       callback: updateAvailableFacilities,
     });
