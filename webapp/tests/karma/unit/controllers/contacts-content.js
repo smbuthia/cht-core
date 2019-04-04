@@ -27,7 +27,10 @@ describe('ContactsContentCtrl', () => {
     _id: 'districtsdistrict',
     type: 'clinic',
     contact: { _id: 'mario' },
-    children: { persons: [ ] }
+    children: [ {
+      type: { id: 'person', person: true},
+      contacts: []
+    }]
   };
 
   const stubGetContact = (doc, childArray) => {
@@ -36,7 +39,10 @@ describe('ContactsContentCtrl', () => {
     });
     const model = {
       doc: doc,
-      children: { persons: childRows }
+      children: [{
+        type: { id: 'person', person: true },
+        contacts: childRows
+      }]
     };
 
     getContact.returns(Promise.resolve());
@@ -86,7 +92,6 @@ describe('ContactsContentCtrl', () => {
       go: sinon.stub()
     };
 
-    timeout = _$timeout_;
     controller = $controller;
 
     getContact = sinon.stub();

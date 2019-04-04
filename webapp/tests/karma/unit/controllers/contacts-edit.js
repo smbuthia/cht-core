@@ -3,7 +3,7 @@ describe('Contacts Edit controller', () => {
   'use strict';
 
   let actions,
-      contactSchema,
+      contactTypes,
       createController,
       scope,
       $rootScope,
@@ -20,7 +20,7 @@ describe('Contacts Edit controller', () => {
     scope.setTitle = sinon.stub();
     scope.clearSelected = sinon.stub();
     scope.setShowContent = sinon.stub();
-    contactSchema = { get: sinon.stub().returns({ fields: { parent: '' }}) };
+    contactTypes = { get: sinon.stub().resolves({}) };
     var $translate = key => Promise.resolve(key + 'translated');
     $translate.instant = key => key + 'translated';
 
@@ -42,7 +42,7 @@ describe('Contacts Edit controller', () => {
         'Actions': () => actions,
         'ContactForm': contactForm,
         'ContactSave': sinon.stub(),
-        'ContactSchema': contactSchema,
+        'ContactTypes': contactTypes,
         'Enketo': sinon.stub(),
         'LineageModelGenerator': { contact: sinon.stub().resolves() },
         'Snackbar': sinon.stub(),

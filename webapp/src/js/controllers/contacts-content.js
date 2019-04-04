@@ -5,10 +5,10 @@ angular.module('inboxControllers').controller('ContactsContentCtrl',
   function(
     $log,
     $ngRedux,
+    $q,
     $scope,
     $state,
     $stateParams,
-    $timeout,
     $translate,
     Actions,
     Auth,
@@ -85,43 +85,51 @@ angular.module('inboxControllers').controller('ContactsContentCtrl',
       return TranslateFrom(value, task);
     };
 
-    var getTasks = function() {
+    const canViewTasks = () => {
       return Auth('can_view_tasks')
-        .then(function() {
-          ctrl.updateSelected({ tasks: [] });
-          const children = [];
-          ctrl.selected.children.forEach(childModel => {
-            if (childModel.type.person) {
-              children.push(...childModel.contacts);
-            }
-          });
-          TasksForContact(
-            ctrl.selected.doc._id,
-            ctrl.selected.doc.type,
-            _.pluck(children, 'id'),
-            'ContactsContentCtrl',
-            function(areTasksEnabled, tasks) {
-              if (ctrl.selected) {
-                $timeout(() => {
-                  tasks.forEach(function(task) {
-                    task.title = translate(task.title, task);
-                    task.priorityLabel = translate(task.priorityLabel, task);
-                  });
-                  ctrl.updateSelected({ areTasksEnabled: areTasksEnabled, tasks: tasks });
-                  children.forEach(function(child) {
-                    child.taskCount = tasks.filter(function(task) {
-                      return task.doc &&
-                             task.doc.contact &&
-                             task.doc.contact._id === child.doc._id;
-                    }).length;
-                  });
-                });
-              }
-            });
-        })
-        .catch(function() {
+        .then(() => true)
+        .catch(() => false);
+    };
+
+    var getTasks = function() {
+      return canViewTasks().then(allowed => {
+        if (!allowed) {
           $log.debug('Not authorized to view tasks');
+          return;
+        }
+        ctrl.updateSelected({ tasks: [] });
+        const children = [];
+        ctrl.selected.children.forEach(childModel => {
+          if (childModel.type.person) {
+            children.push(...childModel.contacts);
+          }
         });
+        const deferred = $q.defer();
+        TasksForContact(
+          ctrl.selected.doc._id,
+          ctrl.selected.doc.type,
+          _.pluck(children, 'id'),
+          'ContactsContentCtrl',
+          function(areTasksEnabled, tasks) {
+            if (ctrl.selected) {
+              tasks.forEach(function(task) {
+                task.title = translate(task.title, task);
+                task.priorityLabel = translate(task.priorityLabel, task);
+              });
+              ctrl.updateSelected({ areTasksEnabled: areTasksEnabled, tasks: tasks });
+              children.forEach(function(child) {
+                child.taskCount = tasks.filter(function(task) {
+                  return task.doc &&
+                         task.doc.contact &&
+                         task.doc.contact._id === child.doc._id;
+                }).length;
+              });
+            }
+            deferred.resolve();
+          }
+        );
+        return deferred.promise;
+      });
     };
 
     var selectContact = function(id, silent) {
