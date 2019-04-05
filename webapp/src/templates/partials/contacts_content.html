@@ -25,7 +25,7 @@
               <div ng-if="$ctrl.selected.doc.date_of_death" translate>contact.deceased.title</div>
               <div class="primary-contact" ng-show="$ctrl.selected.isPrimaryContact">
                 <i class="fa fa-star primary"></i>
-                <span translate>{{primary_contact_key || 'Primary contact'}}</span>
+                <span translate>{{selected.type.primary_contact_key || 'Primary contact'}}</span>
               </div>
               <div class="muted" ng-if="$ctrl.selected.doc.muted" translate>contact.muted</div>
             </div>
