@@ -57,7 +57,7 @@ const escapeUsername = name => name.replace(DB_NAME_BLACKLIST, match => {
 });
 
 module.exports = {
-  getDbName: username => `medic-user-${escapeUsername(username)}-meta`,
+  getDbName: username => `${environment.db}-user-${escapeUsername(username)}-meta`,
   setSecurity: setSecurity,
   create: username => {
     const dbName = module.exports.getDbName(username);
