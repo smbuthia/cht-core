@@ -5,6 +5,7 @@ var _ = require('underscore'),
 angular
   .module('inboxControllers')
   .controller('ReportsCtrl', function(
+    $document,
     $log,
     $ngRedux,
     $scope,
@@ -36,6 +37,29 @@ angular
     var unsubscribe = $ngRedux.connect(mapStateToTarget)(ctrl);
 
     var lineage = lineageFactory();
+
+    // Load the places hierarchy as the user is scrolling through the list
+    // Initially, don't load/display any
+    $scope.totalFacilitiesDisplayed = 0;
+
+    $scope.monitorFacilityDropdown = () => {
+      $document[0].querySelector('#facilityDropdown')
+                  .addEventListener('click', () => {
+        $scope.$apply(function() {
+          $scope.totalFacilitiesDisplayed += 1;
+        });
+      });
+
+      $document[0].querySelector('#facilityDropdown span.dropdown-menu > ul')
+                  .addEventListener('scroll', (event) => {
+        // visible height + pixel scrolled >= total height 
+        if (event.target.offsetHeight + event.target.scrollTop >= event.target.scrollHeight - 100) {
+          $scope.$apply(function() {
+            $scope.totalFacilitiesDisplayed += 1;
+          });
+        }
+      });
+    };
 
     // selected objects have the form
     //    { _id: 'abc', summary: { ... }, report: { ... }, expanded: false }
