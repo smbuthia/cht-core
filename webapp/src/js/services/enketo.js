@@ -295,6 +295,13 @@ angular.module('inboxServices').service('Enketo',
         .on('click.pagemode', function() {
           form.pages.next()
             .then(function(newPageIndex) {
+              if(!newPageIndex){
+                if ($wrapper.find('.invalid-required').length > 0) {
+                  $($wrapper).find('.next-page').attr('disabled','disabled');
+                } else {
+                  $($wrapper).find('.next-page').removeAttr('disabled');
+                }
+              }
               if(typeof newPageIndex === 'number') {
                 $window.history.pushState({ enketo_page_number: newPageIndex }, '');
               }
@@ -333,6 +340,20 @@ angular.module('inboxServices').service('Enketo',
       }
     };
 
+    var registerValidationCompleteListener = function(selector) {
+      const listener = () => {
+        if ($('.invalid-required').length > 0) {
+          $(selector).find('.next-page').attr('disabled','disabled');
+        } else {
+          $(selector).find('.next-page').removeAttr('disabled');
+        }
+      };
+
+      if (listener) {
+        $(selector).on('valuechange.enketo', listener);
+      }
+    };
+
     var renderForm = function(selector, id, instanceData, editedListener) {
       return Language()
         .then(function(language) {
@@ -344,6 +365,7 @@ angular.module('inboxServices').service('Enketo',
         })
         .then(function(form) {
           registerEditedListener(selector, editedListener);
+          registerValidationCompleteListener(selector);
           return form;
         });
     };
