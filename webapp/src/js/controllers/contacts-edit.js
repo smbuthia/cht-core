@@ -76,7 +76,7 @@ angular.module('inboxControllers').controller('ContactsEditCtrl',
       const typeId = contact ? (contact.contact_type || contact.type) : $state.params.type;
       return ContactTypes.get(typeId).then(type => {
         if (!type) {
-          // TODO handle this error
+          $log.error(`Unknown contact type "${typeId}"`);
           return;
         }
 
