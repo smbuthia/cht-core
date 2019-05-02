@@ -4,6 +4,7 @@ const uuidV4 = require('uuid/v4');
 angular.module('inboxServices').service('ContactSave',
   function(
     $q,
+    ContactTypes,
     DB,
     EnketoTranslation,
     ExtractLineage
@@ -13,7 +14,6 @@ angular.module('inboxServices').service('ContactSave',
     'ngInject';
 
     const CONTACT_FIELD_NAMES = [ 'parent', 'contact' ];
-    const HARDCODED_CONTACT_TYPES = [ 'district_hospital', 'health_center', 'clinic', 'person' ];
 
     const generateFailureMessage = results => {
       const errors = results
@@ -145,7 +145,7 @@ angular.module('inboxServices').service('ContactSave',
           const submitted = EnketoTranslation.contactRecordToJs(form.getDataStr({ irrelevant: false }));
           if (original) {
             submitted.doc = $.extend({}, original, submitted.doc);
-          } else if (HARDCODED_CONTACT_TYPES.includes(type)) {
+          } else if (ContactTypes.isHardcodedType(type)) {
             // default hierarchy - maintain backwards compatibility
             submitted.doc.type = type;
           } else {
