@@ -5,6 +5,7 @@ describe('ContactSave service', () => {
   let service;
   let bulkDocs;
   let get;
+  let ContactTypes;
   let EnketoTranslation;
   let ExtractLineage;
 
@@ -13,6 +14,7 @@ describe('ContactSave service', () => {
       contactRecordToJs: sinon.stub(),
     };
 
+    ContactTypes = { isHardcodedType: sinon.stub().returns(false) };
     ExtractLineage = sinon.stub();
     bulkDocs = sinon.stub();
     get = sinon.stub();
@@ -24,6 +26,7 @@ describe('ContactSave service', () => {
         bulkDocs: bulkDocs,
         get: get
       }));
+      $provide.value('ContactTypes', ContactTypes);
       $provide.value('EnketoTranslation', EnketoTranslation);
       $provide.value('ExtractLineage', ExtractLineage);
     });
