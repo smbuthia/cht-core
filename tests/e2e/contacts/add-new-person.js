@@ -1,7 +1,7 @@
-const commonElements = require('../../page-objects/common/common.po.js'),
-      contactPage = require('../../page-objects/contacts/contacts.po.js'),
-      helper = require('../../helper'),
-      utils = require('../../utils');
+const commonElements = require('../../page-objects/common/common.po.js');
+const contactPage = require('../../page-objects/contacts/contacts.po.js');
+const helper = require('../../helper');
+const utils = require('../../utils');
 
 describe('Add new person tests : ', () => {
   afterEach(done => {
@@ -14,11 +14,7 @@ describe('Add new person tests : ', () => {
   it('should add new person', () => {
     commonElements.goToPeople();
     expect(commonElements.isAt('contacts-list'));
-    contactPage.addNewDistrict('BedeDistrict'); // TODO restore this to its former glory, creating a person as part of the district creation!
-    contactPage.completeNewPersonForm('Bede');
-    const firstInLHS = element(by.css('#contacts-list .content-row:first-child'));
-    helper.waitUntilReady(firstInLHS);
-    firstInLHS.click();
+    contactPage.addNewDistrict('BedeDistrict');
     const district = element(by.css('.card h2'));
     helper.waitUntilReady(district);
     expect(district.getText()).toBe('BedeDistrict');
