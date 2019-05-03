@@ -510,20 +510,16 @@ describe('registration', () => {
     });
 
     it('returns true for reports from known clinic', done => {
-      const doc = { form: 'R', type: 'data_record' };
+      const doc = { form: 'R', type: 'data_record', contact: { phone: '+123' } };
       const getForm = sinon
         .stub(utils, 'getForm')
         .returns({ public_form: false });
       const configGet = sinon.stub(config, 'get').returns([{ form: 'R' }]);
-      const getClinicPhone = sinon
-        .stub(utils, 'getClinicPhone')
-        .returns('+55555555');
       const actual = transition.filter(doc);
       getForm.callCount.should.equal(1);
       getForm.args[0][0].should.equal('R');
       configGet.callCount.should.equal(1);
       configGet.args[0][0].should.equal('registrations');
-      getClinicPhone.callCount.should.equal(1);
       actual.should.equal(true);
       done();
     });
@@ -534,13 +530,11 @@ describe('registration', () => {
         .stub(utils, 'getForm')
         .returns({ public_form: false });
       const configGet = sinon.stub(config, 'get').returns([{ form: 'R' }]);
-      const getClinicPhone = sinon.stub(utils, 'getClinicPhone').returns(null);
       const actual = transition.filter(doc);
       getForm.callCount.should.equal(1);
       getForm.args[0][0].should.equal('R');
       configGet.callCount.should.equal(1);
       configGet.args[0][0].should.equal('registrations');
-      getClinicPhone.callCount.should.equal(1);
       actual.should.equal(false);
       done();
     });
@@ -551,13 +545,11 @@ describe('registration', () => {
         .stub(utils, 'getForm')
         .returns({ public_form: true });
       const configGet = sinon.stub(config, 'get').returns([{ form: 'R' }]);
-      const getClinicPhone = sinon.stub(utils, 'getClinicPhone').returns(null);
       const actual = transition.filter(doc);
       getForm.callCount.should.equal(1);
       getForm.args[0][0].should.equal('R');
       configGet.callCount.should.equal(1);
       configGet.args[0][0].should.equal('registrations');
-      getClinicPhone.callCount.should.equal(1);
       actual.should.equal(true);
       done();
     });
