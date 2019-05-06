@@ -9,6 +9,7 @@ describe('ReportsCtrl controller', () => {
       post,
       LiveList,
       MarkRead,
+      PlaceHierarchy,
       Search,
       Changes,
       FormatDataRecord,
@@ -71,6 +72,7 @@ describe('ReportsCtrl controller', () => {
     };
 
     Search = sinon.stub().resolves();
+    PlaceHierarchy = sinon.stub().resolves([]);
 
     Changes = sinon.stub().callsFake(options => {
       changesCallback = options.callback;
@@ -96,6 +98,7 @@ describe('ReportsCtrl controller', () => {
         'LiveList': LiveList,
         'MarkRead': MarkRead,
         'MessageState': {},
+        'PlaceHierarchy': PlaceHierarchy,
         'ReportViewModelGenerator': {},
         'Search': Search,
         'SearchFilters': searchFilters,
