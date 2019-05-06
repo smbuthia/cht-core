@@ -69,7 +69,7 @@ const getContact = (doc, callback) => {
           return callback();
         }
         const result = data.rows[0].doc;
-        const contactType = getContactType(doc);
+        const contactType = getContactType(result);
         
         // not a contact
         if (!contactType) {
