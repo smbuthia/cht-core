@@ -496,6 +496,8 @@ module.exports = {
       patientShortcode = doc.patient_id,
       patientNameField = getPatientNameField(options.params);
 
+    const contactType = options.registrationConfig.contact_type || 'person';
+
     utils.getPatientContactUuid(
       patientShortcode,
       (err, patientContactId) => {
@@ -525,7 +527,7 @@ module.exports = {
               created_by: contact && contact._id,
               parent: contact && contact.parent,
               reported_date: doc.reported_date,
-              type: 'person',
+              type: contactType,
               patient_id: patientShortcode,
               source_id: doc._id,
             };

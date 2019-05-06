@@ -126,8 +126,8 @@
               date="task.date"
               overdue="task.isLate"
               hide-time="true"
-              heading="$ctrl.selected.doc.type === 'clinic' ? (task.contact && task.contact.name) : task.title"
-              summary="$ctrl.selected.doc.type === 'clinic' ? task.title : ''"
+              heading="$ctrl.selected.children.length ? (task.contact && task.contact.name) : task.title"
+              summary="$ctrl.selected.children.length ? task.title : ''"
               warning="task.priorityLabel"
             />
           </ul>
@@ -158,8 +158,8 @@
                 route="'reports'"
                 icon="report | formIconName:forms"
                 date="report.reported_date"
-                heading="$ctrl.selected.doc.type === 'person' ? (report | summary:forms) : report.heading"
-                summary="$ctrl.selected.doc.type === 'person' ? '' : (report | summary:forms)"
+                heading="$ctrl.selected.children.length ? report.heading : (report | summary:forms)"
+                summary="$ctrl.selected.children.length ? (report | summary:forms) : ''"
                 show-status="true"
                 valid="report.valid"
                 verified="report.verified"

@@ -5,6 +5,8 @@ const _ = require('underscore'),
   lineage = require('@medic/lineage')(Promise, db.medic),
   NAME = 'update_clinics';
 
+const config = require('../config');
+
 const associateContact = (doc, contact, callback) => {
   const self = module.exports;
 
@@ -42,6 +44,12 @@ const getHydratedContact = (id, callback) => {
     });
 };
 
+const getContactType = doc => {
+  const typeId = doc.contact_type || doc.type;
+  const contactTypes = config.get('contact_types') || [];
+  return contactTypes.find(type => type.id === typeId);
+};
+
 const getContact = (doc, callback) => {
   if (doc.refid) {
     // use reference id to find clinic if defined
@@ -61,18 +69,25 @@ const getContact = (doc, callback) => {
           return callback();
         }
         const result = data.rows[0].doc;
-        if (result.type === 'person') {
+        const contactType = getContactType(doc);
+        
+        // not a contact
+        if (!contactType) {
+          return callback();
+        }
+        
+        // person
+        if (contactType.person) {
           return getHydratedContact(result._id, callback);
         }
-        if (result.type === 'clinic') {
-          const id = result.contact && result.contact._id;
-          if (!id) {
-            return callback(null, result.contact || { parent: result });
-          }
 
-          return getHydratedContact(id, callback);
+        // place
+        const id = result.contact && result.contact._id;
+        if (!id) {
+          return callback(null, result.contact || { parent: result });
         }
-        callback();
+
+        return getHydratedContact(id, callback);
       }
     );
   } else if (doc.from) {

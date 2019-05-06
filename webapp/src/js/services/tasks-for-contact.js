@@ -8,6 +8,7 @@ var _ = require('underscore'),
 angular.module('inboxServices').factory('TasksForContact',
   function(
     $log,
+    ContactTypes,
     RulesEngine
   ) {
     'use strict';
@@ -51,13 +52,26 @@ angular.module('inboxServices').factory('TasksForContact',
       });
     };
 
-    var areTasksEnabled = function(docType) {
-      return RulesEngine.enabled && (docType === 'clinic' || docType === 'person');
+    var getType = function(docType) {
+      if (!RulesEngine.enabled) {
+        return Promise.resolve();
+      }
+      // must be either a person type or a leaf place type
+      return ContactTypes.getAll().then(types => {
+        const type = types.find(type => docType === type.id);
+        if (type.person) {
+          return type;
+        }
+        const hasChild = types.some(type => !type.person && type.parents && type.parents.includes(docType));
+        if (!hasChild) {
+          return type;
+        }
+      });
     };
 
-    var getIdsForTasks = function(docId, docType, childrenPersonIds) {
+    var getIdsForTasks = function(docId, childrenPersonIds, contactType) {
       var contactIds = [docId];
-      if (docType === 'clinic' && childrenPersonIds && childrenPersonIds.length) {
+      if (!contactType.person && childrenPersonIds && childrenPersonIds.length) {
         contactIds = contactIds.concat(childrenPersonIds);
       }
       return contactIds;
@@ -81,11 +95,13 @@ angular.module('inboxServices').factory('TasksForContact',
 
     /** Listener format : function(areTasksEnabled, newTasks) */
     return function(docId, docType, childrenPersonIds, listenerName, listener) {
-      if (!areTasksEnabled(docType)) {
-        return listener(false, []);
-      }
-      var contactIds = getIdsForTasks(docId, docType, childrenPersonIds);
-      getTasks(contactIds, listenerName, listener);
+      return getType(docType).then(contactType => {
+        if (!contactType) {
+          return listener(false, []);
+        }
+        var contactIds = getIdsForTasks(docId, childrenPersonIds, contactType);
+        getTasks(contactIds, listenerName, listener);
+      });
     };
 
   }
