@@ -129,23 +129,23 @@ describe('reminders', () => {
   });
 
   it('getClinics calls db view', done => {
-      sinon.stub(db.medic, 'query').callsArgWith(2, null, {
-          rows: [
-              {
-                  doc: {
-                      id: 'xxx'
-                  }
-              }
-          ]
+      const dbQuery = sinon.stub(db.medic, 'query').callsArgWith(2, null, {
+          rows: [ { doc: { id: 'xxx' } } ]
       });
+      sinon.stub(config, 'get').returns([
+          { id: 'person', person: true, parents: [ 'clinic' ] },     // not queried because we send reminders only to places
+          { id: 'clinic', parents: [ 'health_center' ] },            // queried
+          { id: 'health_center', parents: [ 'district_hospital' ] }, // not queried because its not a leaf
+          { id: 'district_hospital' }
+      ]);
 
-      reminders.getClinics({
-          reminder: {}
-      }, function(err, clinics) {
+      reminders.getClinics({ reminder: {} }, function(err, clinics) {
           assert(_.isArray(clinics));
           assert.equal(clinics.length, 1);
-          assert.equal(_.first(clinics).id, 'xxx');
-          assert(db.medic.query.called);
+          assert.equal(clinics[0].id, 'xxx');
+          assert.equal(dbQuery.callCount, 1);
+          assert.equal(dbQuery.args[0][0], 'medic-client/contacts_by_type');
+          assert.deepEqual(dbQuery.args[0][1].keys, [ 'clinic' ]);
           done();
       });
   });
