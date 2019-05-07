@@ -38,6 +38,7 @@ var _ = require('underscore'),
     RecurringProcessManager,
     ResourceIcons,
     RulesEngine,
+    Selectors,
     Session,
     SetLanguage,
     Settings,
@@ -71,9 +72,10 @@ var _ = require('underscore'),
     var ctrl = this;
     var mapStateToTarget = function(state) {
       return {
-        cancelCallback: state.cancelCallback,
-        enketoStatus: state.enketoStatus,
-        selectMode: state.selectMode
+        cancelCallback: Selectors.getCancelCallback(state),
+        enketoEdited: Selectors.getEnketoEditedStatus(state),
+        enketoSaving: Selectors.getEnketoSavingStatus(state),
+        selectMode: Selectors.getSelectMode(state)
       };
     };
     var mapDispatchToTarget = function(dispatch) {
@@ -253,7 +255,7 @@ var _ = require('underscore'),
     });
 
     $transitions.onBefore({}, (trans) => {
-      if (ctrl.enketoStatus.edited && ctrl.cancelCallback) {
+      if (ctrl.enketoEdited && ctrl.cancelCallback) {
         $scope.navigationCancel({ to: trans.to(), params: trans.params() });
         return false;
       }
@@ -270,11 +272,11 @@ var _ = require('underscore'),
 
     // User wants to cancel current flow, or pressed back button, etc.
     $scope.navigationCancel = function(trans) {
-      if (ctrl.enketoStatus.saving) {
+      if (ctrl.enketoSaving) {
         // wait for save to finish
         return;
       }
-      if (!ctrl.enketoStatus.edited) {
+      if (!ctrl.enketoEdited) {
         // form hasn't been modified - return immediately
         if (ctrl.cancelCallback) {
           ctrl.cancelCallback();

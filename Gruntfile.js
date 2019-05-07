@@ -269,6 +269,7 @@ module.exports = function(grunt) {
     'generate-service-worker': {
       config: {
         staticDirectoryPath: 'build/ddocs/medic/_attachments',
+        apiSrcDirectoryPath: 'api/src',
         scriptOutputPath: 'build/ddocs/medic/_attachments/js/service-worker.js',
       }
     },
@@ -372,9 +373,9 @@ module.exports = function(grunt) {
             'api/src/extracted-resources/**/*',
             'api/build/**/*',
             '**/node_modules/**',
-            'sentinel/src/lib/pupil/**',
             'build/**',
-            'config/**'
+            'config/**',
+            'shared-libs/transitions/src/lib/pupil/**',
           ];
 
           return [cmd]
@@ -930,8 +931,8 @@ module.exports = function(grunt) {
   grunt.registerTask('unit', 'Unit tests', [
     'karma:unit',
     'karma:admin',
-    'exec:shared-lib-unit',
     'env:unit-test',
+    'exec:shared-lib-unit',
     'mochaTest:unit',
     'env:general',
   ]);
