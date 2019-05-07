@@ -281,7 +281,8 @@ angular.module('inboxServices').factory('LiveList',
   function(
     $timeout,
     ContactTypes,
-    ResourceIcons
+    ResourceIcons,
+    Settings
   ) {
     'ngInject';
 

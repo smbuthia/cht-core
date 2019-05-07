@@ -280,6 +280,11 @@ angular.module('inboxServices').factory('ContactViewModelGenerator',
         });
     };
 
+    const setType = function(model, types) {
+      const typeId = model.doc.contact_type || model.doc.type;
+      model.type = types.find(type => type.id === typeId);
+    };
+
     return {
       getContact: function(id, options) {
         return $q.all([
