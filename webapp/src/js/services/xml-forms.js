@@ -1,5 +1,3 @@
-var _ = require('underscore');
-
 angular.module('inboxServices').factory('XmlForms',
   function(
     $log,
@@ -16,26 +14,26 @@ angular.module('inboxServices').factory('XmlForms',
     'use strict';
     'ngInject';
 
-    var listeners = {};
+    const listeners = {};
 
-    var getForms = function() {
+    const getForms = function() {
+      // TODO change to doc by type
       return DB()
         .query('medic-client/forms', { include_docs: true })
         .then(function(res) {
           return res.rows
             .filter(function(row) {
-              return row.doc._attachments.xml;
+              return Object.keys(row.doc._attachments || {})
+                .some(name => name === 'xml' || name.endsWith('.xml'));
             })
-            .map(function(row) {
-              return row.doc;
-            });
+            .map(row => row.doc);
         });
     };
 
-    var init = getForms();
+    let init = getForms();
 
-    var evaluateExpression = function(expression, doc, user, contactSummary) {
-      var context = {
+    const evaluateExpression = function(expression, doc, user, contactSummary) {
+      const context = {
         contact: doc,
         user: user,
         summary: contactSummary
@@ -43,14 +41,14 @@ angular.module('inboxServices').factory('XmlForms',
       return $parse(expression)(XmlFormsContextUtils, context);
     };
 
-    var filterAll = function(forms, options, user) {
+    const filterAll = function(forms, options, user) {
       // clone the forms list so we don't affect future filtering
       forms = forms.slice();
-      var promises = _.map(forms, _.partial(filter, _, options, user));
+      const promises = forms.map(form => filter(form, options, user));
       return $q.all(promises)
         .then(function(resolutions) {
           // always splice in reverse...
-          for (var i = resolutions.length - 1; i >= 0; i--) {
+          for (let i = resolutions.length - 1; i >= 0; i--) {
             if (!resolutions[i]) {
               forms.splice(i, 1);
             }
@@ -59,13 +57,13 @@ angular.module('inboxServices').factory('XmlForms',
         });
     };
 
-    var filter = function(form, options, user) {
+    const filter = function(form, options, user) {
       if (!options.includeCollect && form.context && form.context.collect) {
         return false;
       }
 
       if (options.contactForms !== undefined) {
-        var isContactForm = form._id.indexOf('form:contact:') === 0;
+        const isContactForm = form._id.indexOf('form:contact:') === 0;
         if (options.contactForms !== isContactForm) {
           return false;
         }
@@ -81,7 +79,7 @@ angular.module('inboxServices').factory('XmlForms',
       }
 
       if (options.doc) {
-        var contactType = options.doc.type;
+        const contactType = options.doc.type;
         if (contactType === 'person' && (
             (typeof form.context.person !== 'undefined' && !form.context.person) ||
             (typeof form.context.person === 'undefined' && form.context.place))) {
@@ -111,15 +109,15 @@ angular.module('inboxServices').factory('XmlForms',
         });
     };
 
-    var notifyAll = function(forms) {
-      return UserContact()
-        .then(function(user) {
-          _.values(listeners).forEach(function(listener) {
-            filterAll(forms, listener.options, user).then(function(results) {
-              listener.callback(null, results);
-            });
+    const notifyAll = function(forms) {
+      return UserContact().then(function(user) {
+        Object.keys(listeners).forEach(key => {
+          const listener = listeners[key];
+          filterAll(forms, listener.options, user).then(function(results) {
+            listener.callback(null, results);
           });
         });
+      });
     };
 
     Changes({
@@ -132,8 +130,8 @@ angular.module('inboxServices').factory('XmlForms',
         init
           .then(notifyAll)
           .catch(function(err) {
-            _.values(listeners).forEach(function(listener) {
-              listener.callback(err);
+            Object.keys(listeners).forEach(key => {
+              listeners[key].callback(err);
             });
           });
       }
@@ -162,7 +160,7 @@ angular.module('inboxServices').factory('XmlForms',
         callback = options;
         options = {};
       }
-      var listener = listeners[name] = {
+      const listener = listeners[name] = {
         options: options,
         callback: callback
       };

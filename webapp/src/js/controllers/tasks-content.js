@@ -83,17 +83,17 @@ angular.module('inboxControllers').controller('TasksContentCtrl',
       if (action.type === 'report') {
         $scope.loadingForm = true;
         $scope.formId = action.form;
-        XmlForm(action.form, { include_docs: true })
+        XmlForm(action.form)
           .then(function(formDoc) {
             ctrl.setEnketoEditedStatus(false);
-            Enketo.render('#task-report', formDoc.id, action.content, markFormEdited)
+            Enketo.render('#task-report', formDoc._id, action.content, markFormEdited)
               .then(function(formInstance) {
                 $scope.form = formInstance;
                 $scope.loadingForm = false;
-                if (formDoc.doc.translation_key) {
-                  $scope.setTitle($translate.instant(formDoc.doc.translation_key));
+                if (formDoc.translation_key) {
+                  $scope.setTitle($translate.instant(formDoc.translation_key));
                 } else {
-                  $scope.setTitle(TranslateFrom(formDoc.doc.title));
+                  $scope.setTitle(TranslateFrom(formDoc.title));
                 }
               })
               .then(() => {
