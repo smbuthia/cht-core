@@ -32,7 +32,7 @@ describe('TasksContentCtrl', function() {
         $q: Q,
         Enketo: { render: render },
         DB: sinon.stub(),
-        XmlForm: XmlForm,
+        XmlForms: { get: XmlForm },
         Telemetry: { record: sinon.stub() }
       });
     };
@@ -50,7 +50,7 @@ describe('TasksContentCtrl', function() {
         content: 'nothing'
       }]
     };
-    XmlForm.returns(Promise.resolve({ id: 'myform', doc: { title: 'My Form' } }));
+    XmlForm.returns(Promise.resolve({ _id: 'myform', title: 'My Form' }));
     createController();
     watchCallback();
     chai.expect($scope.formId).to.equal('A');

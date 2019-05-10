@@ -98,7 +98,7 @@ describe('Enketo service', function() {
       output: { update: function() {} },
     });
 
-    XmlForm.returns(Promise.resolve({ id: 'abc' }));
+    XmlForm.resolves({ _id: 'abc' });
     Actions = { setLastChangedDoc: sinon.stub() };
 
     module(function($provide) {
@@ -125,7 +125,7 @@ describe('Enketo service', function() {
       $provide.value('TranslateFrom', TranslateFrom);
       $provide.value('EnketoPrepopulationData', EnketoPrepopulationData);
       $provide.value('AddAttachment', AddAttachment);
-      $provide.value('XmlForm', XmlForm);
+      $provide.value('XmlForms', { get: XmlForm });
       $provide.value('ZScore', () => Promise.resolve(sinon.stub()));
       $provide.value('$q', Q); // bypass $q so we don't have to digest
       $provide.value('Actions', () => Actions);
@@ -447,7 +447,6 @@ describe('Enketo service', function() {
 
       return service.save('V', form).then(function(actual) {
         actual = actual[0];
-
         chai.expect(form.validate.callCount).to.equal(1);
         chai.expect(form.getDataStr.callCount).to.equal(1);
         chai.expect(dbBulkDocs.callCount).to.equal(1);
