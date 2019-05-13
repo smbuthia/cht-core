@@ -1,5 +1,3 @@
-var _ = require('underscore');
-
 angular.module('inboxServices').service('ContactForm',
   function(
     ContactSchema,
@@ -10,13 +8,10 @@ angular.module('inboxServices').service('ContactForm',
     'use strict';
     'ngInject';
 
-    const getAvailableFormIds = () => {
-      return XmlForms.list().then(forms => forms.map(form => form._id));
-    };
-
     var getFormById = function(availableForms, id) {
-      if (_.contains(availableForms, id)) {
-        return { id: id };
+      const form = availableForms.find(form => form._id === id);
+      if (form) {
+        return { doc: form };
       }
     };
 
@@ -27,7 +22,7 @@ angular.module('inboxServices').service('ContactForm',
     };
 
     var getFormFor = function(type, mode, extras) {
-      return getAvailableFormIds().then(function(availableForms) {
+      return XmlForms.list().then(function(availableForms) {
         return getFormById(availableForms, 'form:contact:' + type + ':' + mode) ||
                getFormById(availableForms, 'form:contact:' + type) ||
                generateForm(type, extras);

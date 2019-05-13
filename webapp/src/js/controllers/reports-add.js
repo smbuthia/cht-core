@@ -96,7 +96,7 @@ angular.module('inboxControllers').controller('ReportsAddCtrl',
           XmlForms.get(model.formInternalId)
         ]).then(function(results) {
           ctrl.setEnketoEditedStatus(false);
-          Enketo.render('#report-form', results[1]._id, results[0], markFormEdited)
+          Enketo.render('#report-form', results[1], results[0], markFormEdited)
             .then(function(form) {
               $scope.form = form;
               $scope.loadingContent = false;

@@ -4,6 +4,7 @@ describe('Enketo service', function() {
   /** @return a mock form ready for putting in #dbContent */
   var mockEnketoDoc = function(formInternalId) {
     return {
+      _id: `form:${formInternalId}`,
       internalId: formInternalId,
       _attachments: { xml: { something: true } },
     };
@@ -83,7 +84,6 @@ describe('Enketo service', function() {
       AddAttachment = sinon.stub(),
       EnketoForm = sinon.stub(),
       EnketoPrepopulationData = sinon.stub(),
-      XmlForm = sinon.stub(),
       Search = sinon.stub(),
       LineageModelGenerator = { contact: sinon.stub() },
       Actions;
@@ -98,7 +98,6 @@ describe('Enketo service', function() {
       output: { update: function() {} },
     });
 
-    XmlForm.resolves({ _id: 'abc' });
     Actions = { setLastChangedDoc: sinon.stub() };
 
     module(function($provide) {
@@ -125,7 +124,10 @@ describe('Enketo service', function() {
       $provide.value('TranslateFrom', TranslateFrom);
       $provide.value('EnketoPrepopulationData', EnketoPrepopulationData);
       $provide.value('AddAttachment', AddAttachment);
-      $provide.value('XmlForms', { get: XmlForm });
+      $provide.value('XmlForms', {
+        get: sinon.stub().resolves({ _id: 'abc' }),
+        findXFormAttachmentName: sinon.stub().resolves('mydoc')
+      });
       $provide.value('ZScore', () => Promise.resolve(sinon.stub()));
       $provide.value('$q', Q); // bypass $q so we don't have to digest
       $provide.value('Actions', () => Actions);
@@ -160,7 +162,7 @@ describe('Enketo service', function() {
 
     it('return error when form initialisation fails', function(done) {
       UserContact.returns(Promise.resolve({ contact_id: '123' }));
-      dbGet.returns(Promise.resolve(mockEnketoDoc('myform')));
+      // dbGet.returns(Promise.resolve(mockEnketoDoc('myform')));
       dbGetAttachment.returns(Promise.resolve('xml'));
       transform
         .onFirstCall().returns(Promise.resolve($('<div>my form</div>')))
@@ -169,13 +171,18 @@ describe('Enketo service', function() {
       var expected = [ 'nope', 'still nope' ];
       enketoInit.returns(expected);
       service
-        .render($('<div></div>'), 'ok')
+        .render($('<div></div>'), mockEnketoDoc('myform'))
         .then(function() {
           done(new Error('Should throw error'));
         })
         .catch(function(actual) {
-          chai.expect(enketoInit.callCount).to.equal(1);
-          chai.expect(actual.message).to.equal(JSON.stringify(expected));
+          try {
+
+            chai.expect(enketoInit.callCount).to.equal(1);
+            chai.expect(actual.message).to.equal(JSON.stringify(expected));
+          } catch(e) {
+            done(e);
+          }
           done();
         });
     });

@@ -50,7 +50,8 @@ describe('TasksContentCtrl', function() {
         content: 'nothing'
       }]
     };
-    XmlForms.get.resolves({ _id: 'myform', title: 'My Form' });
+    const form = { _id: 'myform', title: 'My Form' };
+    XmlForms.get.resolves(form);
     createController();
     watchCallback();
     chai.expect($scope.formId).to.equal('A');
@@ -58,7 +59,7 @@ describe('TasksContentCtrl', function() {
       chai.expect(render.callCount).to.equal(1);
       chai.expect(render.getCall(0).args.length).to.equal(4);
       chai.expect(render.getCall(0).args[0]).to.equal('#task-report');
-      chai.expect(render.getCall(0).args[1]).to.equal('myform');
+      chai.expect(render.getCall(0).args[1]).to.deep.equal(form);
       chai.expect(render.getCall(0).args[2]).to.equal('nothing');
       chai.expect(getEnketoEditedStatus()).to.equal(false);
       done();
