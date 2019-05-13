@@ -3,16 +3,16 @@ var _ = require('underscore');
 angular.module('inboxServices').service('ContactForm',
   function(
     ContactSchema,
-    DB,
-    EnketoTranslation
+    EnketoTranslation,
+    XmlForms
   ) {
 
     'use strict';
     'ngInject';
 
-    var withAvailableForms = DB().query('medic-client/forms').then(function(res) {
-      return _.pluck(res.rows, 'id');
-    });
+    const getAvailableFormIds = () => {
+      return XmlForms.list().then(forms => forms.map(form => form._id));
+    };
 
     var getFormById = function(availableForms, id) {
       if (_.contains(availableForms, id)) {
@@ -27,7 +27,7 @@ angular.module('inboxServices').service('ContactForm',
     };
 
     var getFormFor = function(type, mode, extras) {
-      return withAvailableForms.then(function(availableForms) {
+      return getAvailableFormIds().then(function(availableForms) {
         return getFormById(availableForms, 'form:contact:' + type + ':' + mode) ||
                getFormById(availableForms, 'form:contact:' + type) ||
                generateForm(type, extras);

@@ -272,7 +272,7 @@ var _ = require('underscore'),
                 var summary = results[0];
                 ctrl.updateSelected({ summary: summary });
                 var options = { doc: ctrl.selected.doc, contactSummary: summary.context };
-                XmlForms.list('ContactsCtrl', options, function(err, forms) {
+                XmlForms.listen('ContactsCtrl', options, function(err, forms) {
                   if (err) {
                     $log.error('Error fetching relevant forms', err);
                   }
