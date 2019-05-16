@@ -118,10 +118,8 @@ module.exports = {
             return null;
         }
     },
-    getClinics: function(options, callback) {
+    getLeafPlaces: function(options, callback) {
         const placeTypes = getLeafPlaceTypeIds();
-
-        // gets all clinics
         db.medic.query('medic-client/contacts_by_type', {
             keys: placeTypes,
             include_docs: true
@@ -133,11 +131,11 @@ module.exports = {
 
             // filter them by the canSend function (i.e. not already sent, not
             // on cooldown from having received a form)
-            var clinics = _.filter(docs, function(clinic) {
+            const leafPlaces = _.filter(docs, function(clinic) {
                 return module.exports.canSend(options, clinic);
             });
 
-            callback(err, clinics);
+            callback(err, leafPlaces);
         });
     },
     sendReminder: function(options, callback) {
@@ -152,7 +150,7 @@ module.exports = {
             };
 
         // add a message to the tasks property with the form/ts markers
-        const task = messages.addMessage(clinic, reminder, 'clinic', context);
+        const task = messages.addMessage(clinic, reminder, 'reporting_unit', context);
         if (task) {
             task.form = reminder.form;
             task.ts = moment.toISOString();
@@ -161,7 +159,7 @@ module.exports = {
         db.medic.put(clinic, callback);
     },
     sendReminders: function(options, callback) {
-        module.exports.getClinics(options, function(err, clinics) {
+        module.exports.getLeafPlaces(options, function(err, clinics) {
             if (err) {
                 callback(err);
             } else {

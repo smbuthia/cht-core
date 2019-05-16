@@ -173,7 +173,6 @@ describe('InboxCtrl controller', () => {
   });
 
   it('should watch changes in facilities, translations, ddoc and user context', () => {
-    chai.expect(changesListener['inbox-facilities']).to.be.an('object');
     chai.expect(changesListener['inbox-translations']).to.be.an('object');
     chai.expect(changesListener['inbox-ddoc']).to.be.an('object');
     chai.expect(changesListener['inbox-user-context']).to.be.an('object');

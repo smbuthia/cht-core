@@ -143,7 +143,7 @@ describe('conditional alerts', () => {
       }
     });
 
-    sinon.stub(utils, 'getReportsWithSameClinicAndForm').resolves([{
+    sinon.stub(utils, 'getReportsWithSameParentAndForm').resolves([{
       reported_date: 1390427075750,
       doc: {
         s1_avail: 0
@@ -175,7 +175,7 @@ describe('conditional alerts', () => {
       }
     });
 
-    sinon.stub(utils, 'getReportsWithSameClinicAndForm').resolves([{
+    sinon.stub(utils, 'getReportsWithSameParentAndForm').resolves([{
       key: 'somekey',
       doc: {
         reported_date: 1390427075750,
@@ -204,7 +204,7 @@ describe('conditional alerts', () => {
       }
     });
 
-    sinon.stub(utils, 'getReportsWithSameClinicAndForm').resolves([{
+    sinon.stub(utils, 'getReportsWithSameParentAndForm').resolves([{
       key: 'somekey',
       doc: {
         s1_avail: 9,
@@ -252,7 +252,7 @@ describe('conditional alerts', () => {
       }
     });
 
-    sinon.stub(utils, 'getReportsWithSameClinicAndForm').resolves([{
+    sinon.stub(utils, 'getReportsWithSameParentAndForm').resolves([{
       key: 'something',
       doc: {
         s1_avail: 3,

@@ -24,7 +24,6 @@ var _ = require('underscore'),
     Auth,
     Changes,
     CheckDate,
-    ContactTypes,
     CountMessages,
     DBSync,
     DatabaseConnectionMonitor,
@@ -367,25 +366,12 @@ var _ = require('underscore'),
       }
     });
 
-    var updateAvailableFacilities = function() {
-      PlaceHierarchy()
-        .then(function(hierarchy) {
-          $scope.facilities = hierarchy;
-        })
-        .catch(function(err) {
-          $log.error('Error loading facilities', err);
-        });
-    };
-    updateAvailableFacilities();
-
-    Changes({
-      key: 'inbox-facilities',
-      filter: function(change) {
-        return change.doc.type !== 'clinic' &&
-               change.doc.type !== 'person' &&
-               ContactTypes.includes(change.doc);
-      },
-      callback: updateAvailableFacilities,
+    PlaceHierarchy('inbox-facilities', (err, hierarchy) => {
+      if (err) {
+        $log.error('Error loading facilities', err);
+      } else {
+        $scope.facilities = hierarchy;
+      }
     });
 
     $scope.unreadCount = {};

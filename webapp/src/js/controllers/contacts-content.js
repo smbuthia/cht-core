@@ -142,7 +142,7 @@ angular.module('inboxControllers').controller('ContactsContentCtrl',
       return ContactViewModelGenerator.getContact(id, options)
         .then(function(model) {
           var refreshing = (ctrl.selected && ctrl.selected.doc._id) === id;
-          $scope.setSelected(model);
+          $scope.setSelected(model, options);
           $scope.settingSelected(refreshing);
           return getTasks();
         })

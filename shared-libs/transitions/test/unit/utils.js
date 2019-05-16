@@ -38,21 +38,21 @@ describe('utils', () => {
     assert.equal(utils.getVal(doc, 'fields.404'), undefined);
   });
 
-  it('getReportsWithSameClinicAndForm calls through to db view correctly', () => {
+  it('getReportsWithSameParentAndForm calls through to db view correctly', () => {
 
     const formName = 'someForm';
     const clinicId = 'someClinicId';
     const result = [{_id: 'someRowId'}];
 
     db.medic.query
-      .withArgs('medic/reports_by_form_and_clinic', {
+      .withArgs('medic/reports_by_form_and_parent', {
         startkey: [formName, clinicId],
         endkey: [formName, clinicId],
         include_docs: true
       })
       .resolves({ rows: result });
 
-    return utils.getReportsWithSameClinicAndForm({
+    return utils.getReportsWithSameParentAndForm({
       formName: formName,
       doc: {
         contact: {

@@ -64,6 +64,7 @@ var _ = require('underscore'),
     var defaultTypeFilter = {};
     var usersHomePlace;
     var additionalListItem = false;
+    let childPlaces = [];
 
     $scope.sortDirection = $scope.defaultSortDirection = 'alpha';
     var isSortedByLastVisited = function() {
@@ -180,7 +181,7 @@ var _ = require('underscore'),
           $scope.loading = false;
           $scope.appending = false;
           $scope.hasContacts = liveList.count() > 0;
-          getChildren().then(setActionBarData);
+          setActionBarData();
         })
         .catch(function(err) {
           $scope.error = true;
@@ -242,6 +243,12 @@ var _ = require('underscore'),
       return $translate(title).catch(() => title);
     };
 
+    // Don't allow deletion if this contact has any children
+    const canDelete = selected => {
+      return !selected.children ||
+             Object.keys(selected.children).every(key => !selected.children[key].length);
+    };
+
     $scope.setSelected = function(selected, options) {
       liveList.setSelected(selected.doc._id);
       ctrl.setLoadingSelectedChildren(true);
@@ -249,12 +256,11 @@ var _ = require('underscore'),
       ctrl.setSelected(selected);
       ctrl.clearCancelCallback();
 
-      const selectedDoc = ctrl.selected.doc;
       $scope.loadingSummary = true;
       return $q
         .all([
           getTitle(selected),
-          getCanEdit(selectedDoc),
+          getCanEdit(ctrl.selected.doc),
           getChildTypes(selected.type.id)
         ])
         .then(function(results) {
@@ -262,14 +268,11 @@ var _ = require('underscore'),
           const canEdit = results[1];
           const childTypes = results[2];
           $scope.setTitle(title);
-          if (canEdit) {
-            ctrl.updateSelected({ doc: { child: results[1] }});
-          }
 
           $scope.setRightActionBar({
             relevantForms: [], // this disables the "New Action" button in action bar until full load is complete
-            selected: [selectedDoc],
-            sendTo: selected.type && selected.type.person ? selectedDoc : '',
+            selected: [ctrl.selected.doc],
+            sendTo: selected.type && selected.type.person ? ctrl.selected.doc : '',
             canDelete: false, // this disables the "Delete" button in action bar until full load is complete
             canEdit: canEdit,
             childTypes: childTypes
@@ -307,18 +310,13 @@ var _ = require('underscore'),
                         showUnmuteModal: showUnmuteModal(xForm.internalId)
                       };
                     });
-                  var canDelete =
-                    !ctrl.selected.children ||
-                    ((!ctrl.selected.children.places ||
-                      ctrl.selected.children.places.length === 0) &&
-                      (!ctrl.selected.children.persons ||
-                        ctrl.selected.children.persons.length === 0));
+
                   $scope.setRightActionBar({
-                    selected: [selectedDoc],
+                    selected: [ctrl.selected.doc],
                     relevantForms: formSummaries,
-                    sendTo: selected.type && selected.type.person ? selectedDoc : '',
+                    sendTo: selected.type && selected.type.person ? ctrl.selected.doc : '',
                     canEdit: canEdit,
-                    canDelete: canDelete,
+                    canDelete: canDelete(ctrl.selected),
                     childTypes: childTypes
                   });
                 });
@@ -397,7 +395,7 @@ var _ = require('underscore'),
       return p.then(children => children.filter(child => !child.person));
     };
 
-    var setActionBarData = function(childPlaces) {
+    var setActionBarData = function() {
       $scope.setLeftActionBar({
         hasResults: $scope.hasContacts,
         userFacilityId: usersHomePlace && usersHomePlace._id,
@@ -453,7 +451,7 @@ var _ = require('underscore'),
         getUserHomePlaceSummary(),
         canViewLastVisitedDate(),
         Settings()
-       ])
+      ])
       .then(function(results) {
         usersHomePlace = results[0];
         $scope.lastVisitedDateExtras = results[1];
@@ -465,13 +463,14 @@ var _ = require('underscore'),
         }
         return getChildren();
       })
-      .then(childTypes => {
+      .then(children => {
+        childPlaces = children;
         defaultTypeFilter = {
           types: {
-            selected: childTypes.map(type => type.id)
+            selected: childPlaces.map(type => type.id)
           }
         };
-        setActionBarData(childTypes);
+        setActionBarData();
         return $scope.search();
       });
 

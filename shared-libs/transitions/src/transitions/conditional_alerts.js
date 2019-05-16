@@ -19,7 +19,7 @@ const evaluateCondition = (doc, alert) => {
   if (alert.condition.indexOf(alert.form) === -1) {
     return runCondition(alert.condition, context);
   }
-  return utils.getReportsWithSameClinicAndForm({
+  return utils.getReportsWithSameParentAndForm({
     doc: doc,
     formName: alert.form
   })
