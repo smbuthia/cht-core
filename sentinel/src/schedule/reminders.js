@@ -9,13 +9,17 @@ var _ = require('underscore'),
 // set later to use local time
 later.date.localTime();
 
-const getLeafPlaceTypeIds = () => {
+const getLeafPlaceDocs = callback => {
     const types = config.get('contact_types') || [];
     const placeTypes = types.filter(type => !type.person);
     const leafPlaceTypes = placeTypes.filter(type => {
         return placeTypes.every(inner => !inner.parents || !inner.parents.includes(type.id));
     });
-    return leafPlaceTypes.map(type => type.id);
+    const keys = leafPlaceTypes.map(type => [ type.id ]);
+    db.medic.query('medic-client/contacts_by_type', {
+        keys: keys,
+        include_docs: true
+    }, callback);
 };
 
 function isConfigValid(config) {
@@ -118,24 +122,18 @@ module.exports = {
             return null;
         }
     },
-    getLeafPlaces: function(options, callback) {
-        const placeTypes = getLeafPlaceTypeIds();
-        db.medic.query('medic-client/contacts_by_type', {
-            keys: placeTypes,
-            include_docs: true
-        }, function(err, data) {
+    getLeafPlaces: (options, callback) => {
+        getLeafPlaceDocs((err, response) => {
             if (err) {
                 return callback(err);
             }
-            var docs = _.pluck(data.rows, 'doc');
-
             // filter them by the canSend function (i.e. not already sent, not
             // on cooldown from having received a form)
-            const leafPlaces = _.filter(docs, function(clinic) {
-                return module.exports.canSend(options, clinic);
-            });
+            const leafPlaces = response.rows
+                .map(row => row.doc)
+                .filter(doc => module.exports.canSend(options, doc));
 
-            callback(err, leafPlaces);
+            callback(null, leafPlaces);
         });
     },
     sendReminder: function(options, callback) {

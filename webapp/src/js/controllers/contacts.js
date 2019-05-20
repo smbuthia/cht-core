@@ -191,8 +191,13 @@ var _ = require('underscore'),
         });
     };
 
-    const getChildTypes = function(typeId) {
-      return ContactTypes.getChildren(typeId).then(childTypes => {
+    const getChildTypes = function(type) {
+      if (!type) {
+        const doc = ctrl.selected.doc;
+        $log.error(`Unknown contact type "${doc.contact_type || doc.type}" for contact "${doc._id}"`);
+        return [];
+      }
+      return ContactTypes.getChildren(type.id).then(childTypes => {
         const grouped = _.groupBy(childTypes, type => type.person ? 'persons' : 'places');
         const models = [];
         if (grouped.places) {
@@ -246,7 +251,7 @@ var _ = require('underscore'),
     // Don't allow deletion if this contact has any children
     const canDelete = selected => {
       return !selected.children ||
-             Object.keys(selected.children).every(key => !selected.children[key].length);
+             selected.children.every(group => !group.contacts || !group.contacts.length);
     };
 
     $scope.setSelected = function(selected, options) {
@@ -261,7 +266,7 @@ var _ = require('underscore'),
         .all([
           getTitle(selected),
           getCanEdit(ctrl.selected.doc),
-          getChildTypes(selected.type.id)
+          getChildTypes(selected.type)
         ])
         .then(function(results) {
           const title = results[0];

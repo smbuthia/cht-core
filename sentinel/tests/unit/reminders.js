@@ -145,7 +145,7 @@ describe('reminders', () => {
           assert.equal(clinics[0].id, 'xxx');
           assert.equal(dbQuery.callCount, 1);
           assert.equal(dbQuery.args[0][0], 'medic-client/contacts_by_type');
-          assert.deepEqual(dbQuery.args[0][1].keys, [ 'clinic' ]);
+          assert.deepEqual(dbQuery.args[0][1].keys, [[ 'clinic' ]]);
           done();
       });
   });
@@ -204,7 +204,6 @@ describe('reminders', () => {
       }, function(err, clinics) {
           var ids = _.pluck(clinics, 'id');
           assert.deepEqual(['xxx', 'yyy', 'yyz'], ids);
-          assert.equal(clinics.length, 3);
           done();
       });
   });
