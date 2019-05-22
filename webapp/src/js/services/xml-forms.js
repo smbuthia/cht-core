@@ -1,5 +1,6 @@
 angular.module('inboxServices').factory('XmlForms',
   function(
+    $log,
     $parse,
     $q,
     Auth,
@@ -34,7 +35,7 @@ angular.module('inboxServices').factory('XmlForms',
             .map(row => row.doc);
         });
     };
-    
+
     let init = getForms();
 
     const getById = internalId => {
@@ -118,9 +119,13 @@ angular.module('inboxServices').factory('XmlForms',
         }
       }
 
-      if (form.context.expression &&
-          !evaluateExpression(form.context.expression, options.doc, user, options.contactSummary)) {
-        return false;
+      if (form.context.expression) {
+        try {
+          return evaluateExpression(form.context.expression, options.doc, user, options.contactSummary)
+        } catch(err) {
+          $log.error(`Unable to evaluate expression for form: ${form._id}`, err);
+          return false;
+        }
       }
 
       if (!form.context.permission) {
