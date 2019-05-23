@@ -10,19 +10,23 @@ angular.module('inboxServices').service('SubmitFormBySms',
     'ngInject';
 
     return doc => {
+      let simulateSms = false;
       if(!$window.medicmobile_android) {
         $log.info('Not in android wrapper.');
-        return;
+        //return;
+        simulateSms = true;
       }
 
-      if(!$window.medicmobile_android.sms_available) {
+      if(!simulateSms && !$window.medicmobile_android.sms_available) {
         $log.info('Android wrapper does not have SMS hooks.');
-        return;
+        //return;
+        simulateSms = true;
       }
 
-      if(!$window.medicmobile_android.sms_available()) {
+      if(!simulateSms && !$window.medicmobile_android.sms_available()) {
         $log.warn('Android wrapper does not have SMS enabled.  Check stacktrace to see why the SmsSender failed to initialise.');
-        return;
+        //return;
+        simulateSms = true;
       }
 
       $q.resolve()
@@ -39,7 +43,11 @@ angular.module('inboxServices').service('SubmitFormBySms',
                 .then(function(settings) {
                   var gatewayPhoneNumber = settings.gateway_number;
                   if(gatewayPhoneNumber) {
-                    $window.medicmobile_android.sms_send(doc._id, gatewayPhoneNumber, smsContent);
+                    if (simulateSms) {
+                      $log.info(`SMS sending simulator calling sms_send with parameters:\ndoc._id: ${doc._id}\ngateway phone nbr: ${gatewayPhoneNumber}\nsmsContent: "${smsContent}"`);
+                    } else {
+                      $window.medicmobile_android.sms_send(doc._id, gatewayPhoneNumber, smsContent);
+                    }
                   } else {
                     $log.error('No gateway_number provided in app_settings.  Form cannot be submitted by SMS.');
                   }
