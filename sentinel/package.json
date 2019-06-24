@@ -48,6 +48,7 @@
     "@medic/phone-number",
     "@medic/registration-utils",
     "@medic/server-checks",
+    "@medic/settings",
     "@medic/task-utils",
     "@medic/tombstone-utils",
     "@medic/transitions",
