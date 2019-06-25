@@ -2,6 +2,8 @@ var _ = require('underscore'),
   bootstrapTranslator = require('./../bootstrapper/translator'),
   moment = require('moment');
 
+const dummy = require('@medic/dummy');
+
 (function() {
   'use strict';
 
@@ -55,6 +57,8 @@ var _ = require('underscore'),
     XmlForms
   ) {
     'ngInject';
+
+    dummy.doSomeLazy([1, 2, 3]);
 
     $window.startupTimes.angularBootstrapped = performance.now();
     Telemetry.record(
