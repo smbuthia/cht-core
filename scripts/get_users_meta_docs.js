@@ -36,8 +36,6 @@ const couchUrl = argv['_'][0] || 'http://admin:pass@localhost:5984/medic-users-m
 
 const db = PouchDB(couchUrl);
 
-let docIndex = 0;
-let docs;
 
 const actionChoices = [
   { name: 'Display next', value: 'next' }, 
@@ -63,7 +61,8 @@ const actionQuestions = [{
      endkey: `${type}-\ufff0`,
     });
     
-    docs = data.rows.map(row => row.doc);
+    const docs = data.rows.map(row => row.doc);
+    let docIndex = 0;
 
     if (mode === 'batch') {
       console.log(JSON.stringify(docs, null, 2));

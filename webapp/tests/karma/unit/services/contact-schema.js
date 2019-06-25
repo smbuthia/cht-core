@@ -173,8 +173,8 @@ describe('ContactSchema service', function() {
   describe('#getVisibleFields()', function() {
     it('should not include `name` field', function() {
       // expect
-      assert.ok   (service.get()             .clinic.fields.hasOwnProperty('name'));
-      assert.notOk(service.getVisibleFields().clinic.fields.hasOwnProperty('name'));
+      assert.ok(Object.prototype.hasOwnProperty.call(service.get().clinic.fields, 'name'));
+      assert.notOk(Object.prototype.hasOwnProperty.call(service.getVisibleFields().clinic.fields, 'name'));
     });
 
     /*
@@ -191,8 +191,8 @@ describe('ContactSchema service', function() {
 
     it('should not include fields marked `hide_in_view`', function() {
       // expect
-      assert.ok   (service.get()             .clinic.fields.hasOwnProperty('location'));
-      assert.notOk(service.getVisibleFields().clinic.fields.hasOwnProperty('location'));
+      assert.ok(Object.prototype.hasOwnProperty.call(service.get().clinic.fields, 'location'));
+      assert.notOk(Object.prototype.hasOwnProperty.call(service.getVisibleFields().clinic.fields, 'location'));
     });
   });
 

@@ -209,7 +209,7 @@ angular.module('inboxServices').service('EnketoTranslation',
               return;
             }
             var attrs = _.extend({ ref: xPath(mapping, f) }, extraAttributesFor(conf));
-            if (extras && extras.hasOwnProperty(f)) {
+            if (extras && Object.prototype.hasOwnProperty.call(extras, f)) {
               if (attrs.appearance) {
                 attrs.appearance += ' allow-new';
               } else {
