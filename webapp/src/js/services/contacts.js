@@ -1,5 +1,4 @@
-var _ = require('underscore'),
-    parallel = require('async/parallel');
+const _ = require('underscore');
 
 angular.module('inboxServices').factory('Contacts',
   function(
@@ -12,7 +11,8 @@ angular.module('inboxServices').factory('Contacts',
     'use strict';
     'ngInject';
 
-    var cacheByType = {};
+    const cacheByType = {};
+
     ContactSchema.getPlaceTypes().forEach(function(type) {
       cacheByType[type] = Cache({
         get: function(callback) {
@@ -34,21 +34,21 @@ angular.module('inboxServices').factory('Contacts',
      * @param: types (array), eg: ['district_hospital', 'clinic']
      */
     return function(types) {
-      var deferred = $q.defer();
       if (!types || types.indexOf('person') !== -1) {
         // For admins this involves downloading a _huge_ amount of data.
-        return deferred.reject(new Error('Call made to Contacts requesting Person data'));
+        return $q.reject(new Error('Call made to Contacts requesting Person data'));
       }
-      var relevantCaches = types.map(function(type) {
-        return cacheByType[type];
+      const relevantCaches = types.map(type => {
+        const deferred = $q.defer();
+        cacheByType[type]((err, result) => {
+          if (err) {
+            return deferred.reject(err);
+          }
+          deferred.resolve(result);
+        });
+        return deferred.promise;
       });
-      parallel(relevantCaches, function(err, results) {
-        if (err) {
-          return deferred.reject(err);
-        }
-        deferred.resolve(_.flatten(results));
-      });
-      return deferred.promise;
+      return $q.all(relevantCaches).then(results => _.flatten(results));
     };
   }
 );
