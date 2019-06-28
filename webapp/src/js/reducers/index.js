@@ -22,9 +22,6 @@
       state = initialState;
     }
 
-    let selected;
-    let filteredMessages;
-    let filteredSelected;
     switch (action.type) {
       case actionTypes.SET_CANCEL_CALLBACK:
         return Object.assign({}, state, { cancelCallback: action.payload.cancelCallback });
@@ -40,16 +37,17 @@
         return Object.assign({}, state, {
           selected: merge({}, state.selected, action.payload.selected)
         });
-      case actionTypes.UPDATE_SELECTED_ITEM:
-        selected = state.selected.map(item => {
+      case actionTypes.UPDATE_SELECTED_ITEM: {
+        const selected = state.selected.map(item => {
           if (item._id === action.payload.id) {
             return Object.assign({}, item, action.payload.selected);
           }
           return item;
         });
         return Object.assign({}, state, { selected });
-      case actionTypes.SET_FIRST_SELECTED_DOC_PROPERTY:
-        selected = state.selected.map((item, index) => {
+      }
+      case actionTypes.SET_FIRST_SELECTED_DOC_PROPERTY: {
+        const selected = state.selected.map((item, index) => {
           if (index === 0) {
             return Object.assign({}, item, {
               doc: Object.assign({}, item.doc, action.payload.doc)
@@ -58,8 +56,9 @@
           return item;
         });
         return Object.assign({}, state, { selected });
-      case actionTypes.SET_FIRST_SELECTED_FORMATTED_PROPERTY:
-        selected = state.selected.map((item, index) => {
+      }
+      case actionTypes.SET_FIRST_SELECTED_FORMATTED_PROPERTY: {
+        const selected = state.selected.map((item, index) => {
           if (index === 0) {
             return Object.assign({}, item, {
               formatted: Object.assign({}, item.formatted, action.payload.formatted)
@@ -68,28 +67,32 @@
           return item;
         });
         return Object.assign({}, state, { selected: selected });
+      }
       case actionTypes.ADD_SELECTED_MESSAGE:
         return Object.assign({}, state, {
           selected: Object.assign({}, state.selected, {
             messages: state.selected.messages.concat(action.payload.message)
           })
         });
-      case actionTypes.REMOVE_SELECTED_MESSAGE:
-        filteredMessages = _.filter(state.selected.messages, message => message.id !== action.payload.id);
+      case actionTypes.REMOVE_SELECTED_MESSAGE: {
+        const filteredMessages = _.filter(state.selected.messages, message => message.id !== action.payload.id);
         return Object.assign({}, state, {
           selected: Object.assign({}, state.selected, { messages: filteredMessages })
         });
+      }
       case actionTypes.ADD_SELECTED:
         return Object.assign({}, state, {
           selected: state.selected.concat(action.payload.selected)
         });
-      case actionTypes.REMOVE_SELECTED:
-        filteredSelected = _.filter(state.selected, selected => selected._id !== action.payload.id);
+      case actionTypes.REMOVE_SELECTED: {
+        const filteredSelected = _.filter(state.selected, selected => selected._id !== action.payload.id);
         return Object.assign({}, state, { selected: filteredSelected });
-      case actionTypes.SET_LOADING_SELECTED_CHILDREN:
-        return Object.assign({}, state, { loadingSelectedChildren: action.payload.loadingSelectedChildren });
-      case actionTypes.SET_LOADING_SELECTED_REPORTS:
-        return Object.assign({}, state, { loadingSelectedReports: action.payload.loadingSelectedReports });
+      }
+      case actionTypes.SET_LOADING_CONTACT:
+        return Object.assign({}, state, {
+          loadingSelectedChildren: true,
+          loadingSelectedReports: true,
+        });
       case actionTypes.RECEIVE_SELECTED_CHILDREN:
         return Object.assign({}, state, {
           selected: Object.assign({}, state.selected, { children: action.payload.children }),

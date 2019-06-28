@@ -2,18 +2,12 @@ describe('Store', function() {
   'use strict';
 
   let actions,
-      getState,
-      loadChildren = sinon.stub(),
-      loadReports = sinon.stub();
+      getState;
 
   beforeEach(module('inboxApp'));
 
   function setupStore(initialState) {
     KarmaUtils.setupMockStore(initialState);
-    module(function ($provide) {
-      'ngInject';
-      $provide.value('ContactViewModelGenerator', { loadChildren, loadReports });
-    });
     inject(function($ngRedux, Actions) {
       actions = Actions($ngRedux.dispatch);
       getState = $ngRedux.getState;
@@ -141,58 +135,18 @@ describe('Store', function() {
     chai.expect(state).to.deep.equal({ selected: [{ formatted }] });
   });
 
-  it('sets loadingSelectedChildren', () => {
-    const initialState = { loadingSelectedChildren: false };
+  it('sets setLoadingContact', () => {
+    const initialState = {
+      loadingSelectedChildren: false,
+      loadingSelectedReports: false,
+    };
     setupStore(initialState);
-    actions.setLoadingSelectedChildren(true);
+    actions.setLoadingContact();
     const state = getState();
     chai.expect(state).to.not.equal(initialState);
-    chai.expect(state).to.deep.equal({ loadingSelectedChildren: true });
-  });
-
-  it('sets loadingSelectedReports', () => {
-    const initialState = { loadingSelectedReports: false };
-    setupStore(initialState);
-    actions.setLoadingSelectedReports(true);
-    const state = getState();
-    chai.expect(state).to.not.equal(initialState);
-    chai.expect(state).to.deep.equal({ loadingSelectedReports: true });
-  });
-
-  it('loads selected children', (done) => {
-    const selected = { _id: '1' };
-    const initialState = { selected };
-    setupStore(initialState);
-
-    const children = ['child'];
-    loadChildren.withArgs(selected).returns(Promise.resolve(children));
-    actions.loadSelectedChildren();
-
-    setTimeout(() => {
-      const state = getState();
-      chai.expect(state).to.not.equal(initialState);
-      chai.expect(state.selected).to.not.equal(initialState.selected);
-      chai.expect(state).to.deep.equal({ selected: { _id: '1', children }, loadingSelectedChildren: false });
-      done();
-    });
-  });
-
-  it('loads selected reports', (done) => {
-    const selected = { _id: '1' };
-    const initialState = { selected };
-    setupStore(initialState);
-
-    const reports = ['report'];
-    loadReports.withArgs(selected).returns(Promise.resolve(reports));
-    actions.loadSelectedReports();
-
-
-    setTimeout(() => {
-      const state = getState();
-      chai.expect(state).to.not.equal(initialState);
-      chai.expect(state.selected).to.not.equal(initialState.selected);
-      chai.expect(state).to.deep.equal({ selected: { _id: '1', reports }, loadingSelectedReports: false });
-      done();
+    chai.expect(state).to.deep.equal({
+      loadingSelectedChildren: true,
+      loadingSelectedReports: true,
     });
   });
 

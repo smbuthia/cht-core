@@ -1,17 +1,17 @@
 const actionTypes = require('./actionTypes');
 
 angular.module('inboxServices').factory('Actions',
-  function(ContactViewModelGenerator) {
+  function() {
     'use strict';
     'ngInject';
 
     function createSingleValueAction(type, valueName, value) {
-      const action = {
+      return {
         type,
-        payload: {}
+        payload: {
+          [valueName]: value,
+        }
       };
-      action.payload[valueName] = value;
-      return action;
     }
 
     return function(dispatch) {
@@ -87,30 +87,16 @@ angular.module('inboxServices').factory('Actions',
         dispatch(createSingleValueAction(actionTypes.REMOVE_SELECTED, 'id', id));
       }
 
-      function setLoadingSelectedChildren(loading) {
-        dispatch(createSingleValueAction(actionTypes.SET_LOADING_SELECTED_CHILDREN, 'loadingSelectedChildren', loading));
+      function setLoadingContact() {
+        dispatch({ type: actionTypes.SET_LOADING_CONTACT });
       }
 
-      function setLoadingSelectedReports(loading) {
-        dispatch(createSingleValueAction(actionTypes.SET_LOADING_SELECTED_REPORTS, 'loadingSelectedReports', loading));
+      function loadSelectedChildren(children) {
+        return dispatch(createSingleValueAction(actionTypes.RECEIVE_SELECTED_CHILDREN, 'children', children));
       }
 
-      function loadSelectedChildren(options) {
-        return dispatch(function(dispatch, getState) {
-          const selected = getState().selected;
-          return ContactViewModelGenerator.loadChildren(selected, options).then(children => {
-            dispatch(createSingleValueAction(actionTypes.RECEIVE_SELECTED_CHILDREN, 'children', children));
-          });
-        });
-      }
-
-      function loadSelectedReports() {
-        return dispatch(function(dispatch, getState) {
-          const selected = getState().selected;
-          return ContactViewModelGenerator.loadReports(selected).then(reports => {
-            dispatch(createSingleValueAction(actionTypes.RECEIVE_SELECTED_REPORTS, 'reports', reports));
-          });
-        });
+      function loadSelectedReports(reports) {
+        return dispatch(createSingleValueAction(actionTypes.RECEIVE_SELECTED_REPORTS, 'reports', reports));
       }
 
       function setLastChangedDoc(value) {
@@ -128,8 +114,7 @@ angular.module('inboxServices').factory('Actions',
         setSelected,
         updateSelected,
         // Contacts-specific selected actions
-        setLoadingSelectedChildren,
-        setLoadingSelectedReports,
+        setLoadingContact,
         loadSelectedChildren,
         loadSelectedReports,
         // Messages-specific selected actions

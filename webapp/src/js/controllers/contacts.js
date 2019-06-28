@@ -19,6 +19,7 @@ const PAGE_SIZE = 50;
     Changes,
     ContactSchema,
     ContactSummary,
+    ContactViewModelGenerator,
     Export,
     GetDataRecords,
     LiveList,
@@ -52,8 +53,7 @@ const PAGE_SIZE = 50;
         updateSelected: actions.updateSelected,
         loadSelectedChildren: actions.loadSelectedChildren,
         loadSelectedReports: actions.loadSelectedReports,
-        setLoadingSelectedChildren: actions.setLoadingSelectedChildren,
-        setLoadingSelectedReports: actions.setLoadingSelectedReports
+        setLoadingContact: actions.setLoadingContact,
       };
     };
     var unsubscribe = $ngRedux.connect(mapStateToTarget, mapDispatchToTarget)(ctrl);
@@ -250,11 +250,17 @@ const PAGE_SIZE = 50;
       ctrl.updateSelected({ tasksByContact });
     };
 
-    $scope.setSelected = function(selected, options) {
+    $scope.setSelected = function(selected, contactViewModelOptions) {
       liveList.setSelected(selected.doc._id);
-      ctrl.setLoadingSelectedChildren(true);
-      ctrl.setLoadingSelectedReports(true);
+      ctrl.setLoadingContact();
       ctrl.setSelected(selected);
+      const lazyLoadedContactData = ContactViewModelGenerator.loadChildren(ctrl.selected, contactViewModelOptions)
+        .then(function (children) {
+          ctrl.loadSelectedChildren(children);
+          return ContactViewModelGenerator.loadReports(ctrl.selected);
+        })
+        .then(ctrl.loadSelectedReports);
+
       ctrl.clearCancelCallback();
       var title = '';
       if (ctrl.selected.doc.type === 'person') {
@@ -274,8 +280,7 @@ const PAGE_SIZE = 50;
           if (results[1]) {
             ctrl.updateSelected({ doc: { child: results[1] }});
           }
-          var canEdit = results[2];
-
+          const canEdit = results[2];
           $scope.setRightActionBar({
             relevantForms: [], // this disables the "New Action" button in action bar until full load is complete
             selected: [ctrl.selected.doc],
@@ -284,8 +289,7 @@ const PAGE_SIZE = 50;
             canEdit: canEdit,
           });
 
-          return ctrl.loadSelectedChildren(options)
-            .then(ctrl.loadSelectedReports)
+          return lazyLoadedContactData
             .then(function() {
               return $q.all([
                 ContactSummary(ctrl.selected.doc, ctrl.selected.reports, ctrl.selected.lineage),
@@ -294,29 +298,23 @@ const PAGE_SIZE = 50;
               ])
               .then(function(results) {
                 $scope.loadingSummary = false;
-                var summary = results[0];
-                ctrl.updateSelected({ summary: summary });
-                var options = { doc: ctrl.selected.doc, contactSummary: summary.context };
+                const summary = results[0];
+                ctrl.updateSelected({ summary });
+                const options = { doc: ctrl.selected.doc, contactSummary: summary.context };
                 XmlForms('ContactsCtrl', options, function(err, forms) {
                   if (err) {
                     $log.error('Error fetching relevant forms', err);
                   }
-                  var showUnmuteModal = function(formId) {
-                    return ctrl.selected.doc &&
-                          ctrl.selected.doc.muted &&
-                          !isUnmuteForm(results[1], formId);
-                  };
-                  var formSummaries =
-                    forms &&
-                    forms.map(function(xForm) {
-                      return {
-                        code: xForm.internalId,
-                        title: translateTitle(xForm.translation_key, xForm.title),
-                        icon: xForm.icon,
-                        showUnmuteModal: showUnmuteModal(xForm.internalId)
-                      };
-                    });
-                  var canDelete =
+                  const showUnmuteModal = formId => ctrl.selected.doc && 
+                    ctrl.selected.doc.muted &&
+                    !isUnmuteForm(results[1], formId);
+                  const formSummaries = forms && forms.map(xForm => ({
+                      code: xForm.internalId,
+                      title: translateTitle(xForm.translation_key, xForm.title),
+                      icon: xForm.icon,
+                      showUnmuteModal: showUnmuteModal(xForm.internalId)
+                    }));
+                  const canDelete =
                     !ctrl.selected.children ||
                     ((!ctrl.selected.children.places ||
                       ctrl.selected.children.places.length === 0) &&
