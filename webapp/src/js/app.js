@@ -80,7 +80,7 @@ const makeLoggable = object => {
 const reduxLoggerConfig = {
   actionTransformer: function(action) {
     const loggableAction = cloneDeep(action);
-    makeLoggable(loggableAction.payload);
+    makeLoggable(loggableAction.payload || {});
     try {
       JSON.stringify(loggableAction);
     } catch(error) {
