@@ -93,20 +93,20 @@ angular.module('inboxServices').factory('Actions',
 
       function loadSelectedChildren(options) {
         return dispatch(function(dispatch, getState) {
-          const selected = getState().selected;	
-          return ContactViewModelGenerator.loadChildren(selected, options).then(children => {	
-            dispatch(createSingleValueAction(actionTypes.RECEIVE_SELECTED_CHILDREN, 'children', children));	
-          });	
-        });	
-      }	
+          const selected = getState().selected;
+          return ContactViewModelGenerator.loadChildren(selected, options).then(children => {
+            dispatch(createSingleValueAction(actionTypes.RECEIVE_SELECTED_CHILDREN, 'children', children));
+          });
+        });
+      }
 
-       function loadSelectedReports() {	
-        return dispatch(function(dispatch, getState) {	
-          const selected = getState().selected;	
-          return ContactViewModelGenerator.loadReports(selected).then(reports => {	
-            dispatch(createSingleValueAction(actionTypes.RECEIVE_SELECTED_REPORTS, 'reports', reports));	
-          });	
-        });	
+      function loadSelectedReports() {
+        return dispatch(function(dispatch, getState) {
+          const selected = getState().selected;
+          return ContactViewModelGenerator.loadReports(selected).then(reports => {
+            dispatch(createSingleValueAction(actionTypes.RECEIVE_SELECTED_REPORTS, 'reports', reports));
+          });
+        });
       }
 
       function setLastChangedDoc(value) {
