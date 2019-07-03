@@ -141,7 +141,7 @@ describe('Store', function() {
     chai.expect(state).to.deep.equal({ selected: [{ formatted }] });
   });
 
-  it('sets loadingSelectedReports', () => {
+  it('sets setLoadingContact', () => {
     const initialState = { loadingSelectedReports: false };
     setupStore(initialState);
     actions.setLoadingContact();
