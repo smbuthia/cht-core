@@ -6,7 +6,6 @@ describe('Contacts controller', () => {
     contactsLiveList,
     childType,
     contactSchema,
-    contactViewModelGenerator,
     createController,
     district,
     forms,
@@ -36,6 +35,7 @@ describe('Contacts controller', () => {
     isDbAdmin,
     liveListInit,
     liveListReset,
+    actions,
     getSelected,
     tasksForContact;
 
@@ -115,14 +115,6 @@ describe('Contacts controller', () => {
     });
     contactsLiveList = deadList();
     contactSearchLiveList = deadList();
-    contactViewModelGenerator = {
-      loadChildren: sinon.stub().resolves({
-        persons: [],
-        places: [],
-        deceased: [],
-      }),
-      loadReports: sinon.stub().resolves([]),
-    };
     getDataRecords = KarmaUtils.promiseService(null, district);
     searchResults = [];
     var $translate = key => Promise.resolve(key + 'translated');
@@ -148,6 +140,11 @@ describe('Contacts controller', () => {
     liveListInit = sinon.stub();
     liveListReset = sinon.stub();
 
+    actions = Actions($ngRedux.dispatch);
+    const stubbedActions = {
+      loadSelectedChildren: sinon.stub().returns(Promise.resolve()),
+      loadSelectedReports: sinon.stub().returns(Promise.resolve())
+    };
     getSelected = () => Selectors.getSelected($ngRedux.getState());
 
     tasksForContact = sinon.stub();
@@ -162,13 +159,13 @@ describe('Contacts controller', () => {
         $q: Q,
         $scope: scope,
         $state: { includes: sinon.stub(), go: sinon.stub() },
+        $timeout: work => work(),
         $translate: $translate,
-        Actions: () => Actions($ngRedux.dispatch),
+        Actions: () => Object.assign({}, actions, stubbedActions),
         Auth: auth,
         Changes: changes,
         ContactSchema: contactSchema,
         ContactSummary: contactSummary,
-        ContactViewModelGenerator: contactViewModelGenerator,
         Export: () => {},
         GetDataRecords: getDataRecords,
         LiveList: {
@@ -293,10 +290,7 @@ describe('Contacts controller', () => {
   });
 
   describe('sets right actionBar', () => {
-    const testRightActionBar = (selected, assertions, children) => {
-      if (children) {
-        contactViewModelGenerator.loadChildren.resolves(children);
-      }
+    const testRightActionBar = (selected, assertions) => {
       return createController()
         .getSetupPromiseForTesting()
         .then(() => {
@@ -389,31 +383,28 @@ describe('Contacts controller', () => {
 
     it('disables deleting for places with child places', () => {
       return testRightActionBar(
-        { doc: district },
+        { doc: district, children: { places: [district] } },
         actionBarArgs => {
           assert.equal(actionBarArgs.canDelete, false);
-        },
-        { places: [district] }
+        }
       );
     });
 
     it('disables deleting for places with child people', () => {
       return testRightActionBar(
-        { doc: district },
+        { doc: district, children: { persons: [person] } },
         actionBarArgs => {
           assert.equal(actionBarArgs.canDelete, false);
-        },
-        { persons: [person] }
+        }
       );
     });
 
     it('enables deleting for leaf nodes', () => {
       return testRightActionBar(
-        { doc: district },
+        { doc: district, children: { persons: [], places: [] } },
         actionBarArgs => {
           assert.equal(actionBarArgs.canDelete, true);
-        },
-        { persons: [], places: [] }
+        }
       );
     });
 

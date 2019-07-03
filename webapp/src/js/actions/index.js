@@ -1,7 +1,7 @@
 const actionTypes = require('./actionTypes');
 
 angular.module('inboxServices').factory('Actions',
-  function() {
+  function(ContactViewModelGenerator) {
     'use strict';
     'ngInject';
 
@@ -91,12 +91,22 @@ angular.module('inboxServices').factory('Actions',
         dispatch({ type: actionTypes.SET_LOADING_CONTACT });
       }
 
-      function loadSelectedChildren(children) {
-        return dispatch(createSingleValueAction(actionTypes.RECEIVE_SELECTED_CHILDREN, 'children', children));
-      }
+      function loadSelectedChildren(options) {
+        return dispatch(function(dispatch, getState) {
+          const selected = getState().selected;	
+          return ContactViewModelGenerator.loadChildren(selected, options).then(children => {	
+            dispatch(createSingleValueAction(actionTypes.RECEIVE_SELECTED_CHILDREN, 'children', children));	
+          });	
+        });	
+      }	
 
-      function loadSelectedReports(reports) {
-        return dispatch(createSingleValueAction(actionTypes.RECEIVE_SELECTED_REPORTS, 'reports', reports));
+       function loadSelectedReports() {	
+        return dispatch(function(dispatch, getState) {	
+          const selected = getState().selected;	
+          return ContactViewModelGenerator.loadReports(selected).then(reports => {	
+            dispatch(createSingleValueAction(actionTypes.RECEIVE_SELECTED_REPORTS, 'reports', reports));	
+          });	
+        });	
       }
 
       function setLastChangedDoc(value) {

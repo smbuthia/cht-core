@@ -19,7 +19,6 @@ const PAGE_SIZE = 50;
     Changes,
     ContactSchema,
     ContactSummary,
-    ContactViewModelGenerator,
     Export,
     GetDataRecords,
     LiveList,
@@ -254,11 +253,7 @@ const PAGE_SIZE = 50;
       liveList.setSelected(selected.doc._id);
       ctrl.setLoadingContact();
       ctrl.setSelected(selected);
-      const lazyLoadedContactData = ContactViewModelGenerator.loadChildren(ctrl.selected, contactViewModelOptions)
-        .then(function (children) {
-          ctrl.loadSelectedChildren(children);
-          return ContactViewModelGenerator.loadReports(ctrl.selected);
-        })
+      const lazyLoadedContactData = ctrl.loadSelectedChildren(contactViewModelOptions)
         .then(ctrl.loadSelectedReports);
 
       ctrl.clearCancelCallback();
